@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const RECOMMENDED_ASPECT_RATIO = 9 / 16; // Vertical format
 const MIN_HEIGHT = 1080; // Minimum height for good quality
 const MAX_HEIGHT = 1920; // Maximum height
-const MAX_FILE_SIZE_MB = 8; // Instagram's maximum file size
+const MAX_FILE_SIZE_MB = 1; // Maximum file size of 1MB
 
 interface ImageValidationResult {
   isValid: boolean;
@@ -84,7 +84,7 @@ async function optimizeImageForSocial(file: File): Promise<File> {
     maxSizeMB: MAX_FILE_SIZE_MB,
     maxWidthOrHeight: MAX_HEIGHT,
     useWebWorker: true,
-    initialQuality: 0.8,
+    initialQuality: 0.7, // Reduced quality to ensure we stay under 1MB
   };
 
   const compressedFile = await imageCompression(file, options);
@@ -116,7 +116,7 @@ async function optimizeImageForSocial(file: File): Promise<File> {
       const y = (height - img.height) / 2;
       ctx?.drawImage(img, x, y);
 
-      // Convert to blob
+      // Convert to blob with reduced quality
       canvas.toBlob((blob) => {
         if (blob) {
           const optimizedFile = new File([blob], file.name, {
@@ -127,7 +127,7 @@ async function optimizeImageForSocial(file: File): Promise<File> {
         } else {
           resolve(file);
         }
-      }, 'image/jpeg', 0.9);
+      }, 'image/jpeg', 0.7); // Reduced quality to ensure we stay under 1MB
     };
     img.src = URL.createObjectURL(compressedFile);
   });

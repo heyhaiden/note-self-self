@@ -194,7 +194,7 @@ export function ImageUpload() {
           </li>
           <li className="flex items-center">
             <AlertCircle className="h-4 w-4 mr-2 text-gray-400" />
-            Maximum file size: 8MB
+            Maximum file size: 1MB
           </li>
           <li className="flex items-center">
             <AlertCircle className="h-4 w-4 mr-2 text-gray-400" />
