@@ -27,7 +27,18 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-20 md:pt-32 pb-16 md:pb-24">
-        <div className="container px-4 md:px-6">
+        {/* Background Image - positioned to the right */}
+        <div className="absolute top-0 right-0 w-full md:w-2/3 h-full z-0 overflow-hidden opacity-15">
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent"></div>
+          <img
+            src="/minimalist-abstract-line-art-bw.png"
+            alt=""
+            className="w-full h-full object-cover object-right"
+            aria-hidden="true"
+          />
+        </div>
+
+        <div className="container px-4 md:px-6 relative z-10">
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 text-xs tracking-widest uppercase">NoteSelfSelf</div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-[1.1]">
@@ -89,7 +100,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center text-center">
               <div className="text-5xl font-light mb-6">01</div>
               <h3 className="text-lg font-normal mb-3">Write anonymously</h3>
               <p className="text-sm font-light text-gray-600 leading-relaxed">
@@ -97,14 +108,14 @@ export default function Home() {
                 version.
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center text-center">
               <div className="text-5xl font-light mb-6">02</div>
               <h3 className="text-lg font-normal mb-3">Transform to art</h3>
               <p className="text-sm font-light text-gray-600 leading-relaxed">
                 Our system converts your words into unique, minimalist line art that captures their essence.
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center text-center">
               <div className="text-5xl font-light mb-6">03</div>
               <h3 className="text-lg font-normal mb-3">Join the gallery</h3>
               <p className="text-sm font-light text-gray-600 leading-relaxed">

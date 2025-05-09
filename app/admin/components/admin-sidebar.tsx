@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/auth-provider"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Clock, BarChart3, ImageIcon, Settings, LogOut } from "lucide-react"
+import { Clock, BarChart3, ImageIcon, Settings, LogOut, Home, Database } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function AdminSidebar() {
@@ -25,12 +25,23 @@ export default function AdminSidebar() {
 
       <nav className="flex-1 p-4 space-y-1">
         <Link
+          href="/admin/dashboard"
+          className={`flex items-center gap-3 px-3 py-2 ${
+            isActive("/admin/dashboard") ? "bg-gray-100 text-black" : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <Home className="h-4 w-4" />
+          <span className="text-sm font-light">Dashboard</span>
+        </Link>
+        <Link
           href="/admin"
           className={`flex items-center gap-3 px-3 py-2 ${
             isActive("/admin") &&
+            !isActive("/admin/dashboard") &&
             !isActive("/admin/gallery") &&
             !isActive("/admin/analytics") &&
-            !isActive("/admin/settings")
+            !isActive("/admin/settings") &&
+            !isActive("/admin/storage-setup")
               ? "bg-gray-100 text-black"
               : "text-gray-600 hover:bg-gray-100"
           }`}
@@ -55,6 +66,15 @@ export default function AdminSidebar() {
         >
           <BarChart3 className="h-4 w-4" />
           <span className="text-sm font-light">Analytics</span>
+        </Link>
+        <Link
+          href="/admin/storage-setup"
+          className={`flex items-center gap-3 px-3 py-2 ${
+            isActive("/admin/storage-setup") ? "bg-gray-100 text-black" : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <Database className="h-4 w-4" />
+          <span className="text-sm font-light">Storage Setup</span>
         </Link>
         <Link
           href="/admin/settings"

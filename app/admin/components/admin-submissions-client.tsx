@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,10 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search, CheckCircle, XCircle, Eye } from "lucide-react"
 import { RejectionModal } from "./rejection-modal"
-import { CategoryModal } from "./category-modal"
 import { BulkActionModal } from "./bulk-action-modal"
 import { SubmissionDetail } from "./submission-detail"
-import type { Note, Category } from "@/lib/supabase"
+import type { Note } from "@/lib/supabase"
 
 interface AdminSubmissionsClientProps {
   pendingSubmissions: Note[]
@@ -23,7 +22,6 @@ interface AdminSubmissionsClientProps {
   currentPage: number
   limit: number
   currentTab: string
-  categories: Category[]
 }
 
 export default function AdminSubmissionsClient({
@@ -34,7 +32,6 @@ export default function AdminSubmissionsClient({
   currentPage,
   limit,
   currentTab,
-  categories,
 }: AdminSubmissionsClientProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -44,93 +41,114 @@ export default function AdminSubmissionsClient({
   const [selectedProcessedIds, setSelectedProcessedIds] = useState<number[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false)
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [isBulkActionModalOpen, setIsBulkActionModalOpen] = useState(false)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [currentNoteId, setCurrentNoteId] = useState<number | null>(null)
 
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set("tab", value)
-    params.set("page", "1")
-    router.push(`${pathname}?${params.toString()}`)
-  }
+  // Memoized handlers
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set("tab", value)
+      params.set("page", "1")
+      router.push(`${pathname}?${params.toString()}`)
+    },
+    [searchParams, router, pathname],
+  )
 
-  // Handle pagination
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set("page", newPage.toString())
-    router.push(`${pathname}?${params.toString()}`)
-  }
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      const params = new URLSearchParams(searchParams)
+      params.set("page", newPage.toString())
+      router.push(`${pathname}?${params.toString()}`)
+    },
+    [searchParams, router, pathname],
+  )
 
-  // Handle select all for pending submissions
-  const handleSelectAllPending = (checked: boolean) => {
-    if (checked) {
-      setSelectedPendingIds(pendingSubmissions.map((submission) => submission.id))
-    } else {
-      setSelectedPendingIds([])
-    }
-  }
+  const handleSelectAllPending = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedPendingIds(pendingSubmissions.map((submission) => submission.id))
+      } else {
+        setSelectedPendingIds([])
+      }
+    },
+    [pendingSubmissions],
+  )
 
-  // Handle select all for processed submissions
-  const handleSelectAllProcessed = (checked: boolean) => {
-    if (checked) {
-      setSelectedProcessedIds(processedSubmissions.map((submission) => submission.id))
-    } else {
-      setSelectedProcessedIds([])
-    }
-  }
+  const handleSelectAllProcessed = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedProcessedIds(processedSubmissions.map((submission) => submission.id))
+      } else {
+        setSelectedProcessedIds([])
+      }
+    },
+    [processedSubmissions],
+  )
 
-  // Handle select individual pending submission
-  const handleSelectPending = (id: number, checked: boolean) => {
+  const handleSelectPending = useCallback((id: number, checked: boolean) => {
     if (checked) {
       setSelectedPendingIds((prev) => [...prev, id])
     } else {
       setSelectedPendingIds((prev) => prev.filter((itemId) => itemId !== id))
     }
-  }
+  }, [])
 
-  // Handle select individual processed submission
-  const handleSelectProcessed = (id: number, checked: boolean) => {
+  const handleSelectProcessed = useCallback((id: number, checked: boolean) => {
     if (checked) {
       setSelectedProcessedIds((prev) => [...prev, id])
     } else {
       setSelectedProcessedIds((prev) => prev.filter((itemId) => itemId !== id))
     }
-  }
+  }, [])
 
-  // Handle approve button click
-  const handleApprove = (id: number) => {
-    setCurrentNoteId(id)
-    setIsCategoryModalOpen(true)
-  }
+  const handleApprove = useCallback(
+    (id: number) => {
+      setCurrentNoteId(id)
+      // Create a FormData object and submit directly
+      const formData = new FormData()
+      formData.append("noteId", id.toString())
 
-  // Handle reject button click
-  const handleReject = (id: number) => {
+      // Import the approveSubmission function
+      import("../actions").then(({ approveSubmission }) => {
+        approveSubmission(formData).then((result) => {
+          if (result.success) {
+            // Refresh the page to show updated data
+            router.refresh()
+          }
+        })
+      })
+    },
+    [router],
+  )
+
+  const handleReject = useCallback((id: number) => {
     setCurrentNoteId(id)
     setIsRejectionModalOpen(true)
-  }
+  }, [])
 
-  // Handle view details button click
-  const handleViewDetails = (id: number) => {
+  const handleViewDetails = useCallback((id: number) => {
     setCurrentNoteId(id)
     setIsDetailModalOpen(true)
-  }
+  }, [])
 
-  // Handle bulk action button click
-  const handleBulkAction = () => {
+  const handleBulkAction = useCallback(() => {
     setIsBulkActionModalOpen(true)
-  }
+  }, [])
 
-  // Filter submissions based on search query
-  const filteredPendingSubmissions = pendingSubmissions.filter((submission) =>
-    submission.content.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // Memoized filtered submissions
+  const filteredPendingSubmissions = useMemo(() => {
+    return pendingSubmissions.filter((submission) =>
+      submission.content.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+  }, [pendingSubmissions, searchQuery])
 
-  const filteredProcessedSubmissions = processedSubmissions.filter((submission) =>
-    submission.content.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredProcessedSubmissions = useMemo(() => {
+    return processedSubmissions.filter((submission) =>
+      submission.content.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+  }, [processedSubmissions, searchQuery])
 
   return (
     <>
@@ -354,9 +372,6 @@ export default function AdminSubmissionsClient({
                         Status
                       </th>
                       <th className="p-3 text-left font-light text-xs tracking-wider uppercase text-gray-500">
-                        Category
-                      </th>
-                      <th className="p-3 text-left font-light text-xs tracking-wider uppercase text-gray-500">
                         Actions
                       </th>
                     </tr>
@@ -404,12 +419,6 @@ export default function AdminSubmissionsClient({
                               </Badge>
                             )}
                           </td>
-                          <td className="p-3 text-sm font-light">
-                            {submission.categories?.name ||
-                              (submission.rejection_reason &&
-                                `Rejected: ${submission.rejection_reason.substring(0, 20)}...`) ||
-                              "-"}
-                          </td>
                           <td className="p-3">
                             <Button
                               size="sm"
@@ -425,7 +434,7 @@ export default function AdminSubmissionsClient({
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="p-6 text-center text-gray-500 font-light">
+                        <td colSpan={5} className="p-6 text-center text-gray-500 font-light">
                           {searchQuery ? "No matching submissions found" : "No processed submissions"}
                         </td>
                       </tr>
@@ -471,18 +480,10 @@ export default function AdminSubmissionsClient({
         noteId={currentNoteId || 0}
       />
 
-      <CategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        noteId={currentNoteId || 0}
-        categories={categories}
-      />
-
       <BulkActionModal
         isOpen={isBulkActionModalOpen}
         onClose={() => setIsBulkActionModalOpen(false)}
         selectedIds={currentTab === "pending" ? selectedPendingIds : selectedProcessedIds}
-        categories={categories}
       />
 
       <SubmissionDetail

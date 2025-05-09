@@ -1,9 +1,7 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +10,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +21,10 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("Attempting login with email:", email)
+
+      // Sign in with email and password
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -33,24 +33,39 @@ export default function AdminLoginPage() {
         throw error
       }
 
-      // Wait for auth state to be updated
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_IN') {
-          router.push("/admin")
-          router.refresh()
-        }
-      })
+      if (!data.session) {
+        throw new Error("No session created")
+      }
 
-      // Cleanup subscription after 5 seconds if not redirected
-      setTimeout(() => {
-        subscription.unsubscribe()
-      }, 5000)
+      console.log("Login successful, checking admin status")
+
+      // Check if user has an entry in admin_users table
+      const { data: adminData, error: adminError } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("user_id", data.session.user.id)
+        .maybeSingle()
+
+      if (adminError) {
+        console.error("Error checking admin status:", adminError)
+        throw new Error("Error checking permissions")
+      }
+
+      if (!adminData) {
+        // Sign out if not in admin_users table
+        await supabase.auth.signOut()
+        throw new Error("You do not have permission to access the admin area")
+      }
+
+      console.log("User is an admin, redirecting to dashboard")
+
+      // Redirect to admin dashboard
+      window.location.href = "/admin/dashboard"
     } catch (error) {
       console.error("Error logging in:", error)
       setError(
         error instanceof Error ? error.message : "Failed to log in. Please check your credentials and try again.",
       )
-    } finally {
       setIsLoading(false)
     }
   }

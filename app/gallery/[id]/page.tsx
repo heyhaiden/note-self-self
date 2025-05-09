@@ -8,7 +8,7 @@ import { notFound } from "next/navigation"
 async function getNoteDetails(id: number) {
   const supabase = createServerSupabaseClient()
 
-  // Fetch the note with its category and artwork
+  // Fetch the note with its artwork
   const { data: note, error } = await supabase
     .from("notes")
     .select(`
@@ -18,7 +18,6 @@ async function getNoteDetails(id: number) {
       approved_at,
       is_screenshot,
       screenshot_url,
-      categories:category_id(id, name, slug),
       artwork:artwork(id, image_url, alt_text)
     `)
     .eq("id", id)
@@ -34,8 +33,7 @@ async function getNoteDetails(id: number) {
     .from("notes")
     .select(`
       id,
-      content,
-      categories:category_id(id, name, slug)
+      content
     `)
     .eq("status", "approved")
     .neq("id", id)
@@ -112,9 +110,6 @@ export default async function NoteDetailPage({ params }: { params: { id: string 
           <div className="flex flex-col">
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-4">
-                <span className="text-xs tracking-wider uppercase text-gray-500">
-                  {note.categories?.name || "Uncategorized"}
-                </span>
                 <span className="text-xs font-light text-gray-400">
                   {new Date(note.approved_at || note.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -158,9 +153,6 @@ export default async function NoteDetailPage({ params }: { params: { id: string 
                   {relatedNotes.map((item) => (
                     <Link key={item.id} href={`/gallery/${item.id}`} className="block group">
                       <div className="border border-gray-200 group-hover:border-gray-300 transition-colors p-6">
-                        <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-                          {item.categories?.name || "Uncategorized"}
-                        </div>
                         <p className="text-base font-light leading-relaxed">{item.content}</p>
                         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                           <div className="w-12 h-[1px] bg-black"></div>

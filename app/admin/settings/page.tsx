@@ -1,11 +1,13 @@
-import { requireAdmin } from "@/lib/auth"
 import AdminSidebar from "../components/admin-sidebar"
 import AdminHeader from "../components/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 export default async function AdminSettingsPage() {
-  // Check if user is authenticated and has admin role
-  const { user } = await requireAdmin()
+  // Get the current user
+  const supabase = createServerSupabaseClient()
+  const { data: sessionData } = await supabase.auth.getSession()
+  const user = sessionData.session?.user || null
 
   return (
     <div className="min-h-screen bg-white">
@@ -32,7 +34,7 @@ export default async function AdminSettingsPage() {
                   <div className="space-y-4">
                     <div>
                       <div className="text-xs font-light text-gray-500 mb-1">Email</div>
-                      <div className="text-sm font-normal">{user.email}</div>
+                      <div className="text-sm font-normal">{user?.email || "Not logged in"}</div>
                     </div>
                     <div>
                       <div className="text-xs font-light text-gray-500 mb-1">Role</div>
@@ -41,7 +43,7 @@ export default async function AdminSettingsPage() {
                     <div>
                       <div className="text-xs font-light text-gray-500 mb-1">Last Sign In</div>
                       <div className="text-sm font-normal">
-                        {new Date(user.last_sign_in_at || "").toLocaleString() || "Never"}
+                        {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "Never"}
                       </div>
                     </div>
                   </div>

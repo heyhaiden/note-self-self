@@ -1,15 +1,16 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createSupabaseClient } from "@/lib/supabase-client"
 import { generateArtwork } from "@/lib/admin-utils"
 import { revalidatePath } from "next/cache"
 
 // Action to approve a submission
 export async function approveSubmission(formData: FormData) {
   try {
-    const supabase = createServerSupabaseClient()
+    // For admin actions, we still need the authenticated client
+    // But we don't need the service role key anymore due to RLS policies
+    const supabase = createSupabaseClient({ withCookies: true })
     const noteId = Number(formData.get("noteId"))
-    const categoryId = Number(formData.get("categoryId") || 0) || null
 
     // Get the note content for artwork generation
     const { data: note } = await supabase.from("notes").select("content").eq("id", noteId).single()
@@ -23,7 +24,6 @@ export async function approveSubmission(formData: FormData) {
       .from("notes")
       .update({
         status: "approved",
-        category_id: categoryId,
         approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -53,7 +53,7 @@ export async function approveSubmission(formData: FormData) {
 // Action to reject a submission
 export async function rejectSubmission(formData: FormData) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createSupabaseClient({ withCookies: true })
     const noteId = Number(formData.get("noteId"))
     const rejectionReason = (formData.get("rejectionReason") as string) || "Content not suitable"
 
@@ -87,7 +87,7 @@ export async function rejectSubmission(formData: FormData) {
 // Action to bulk approve submissions
 export async function bulkApproveSubmissions(formData: FormData) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createSupabaseClient({ withCookies: true })
     const noteIds = formData.get("noteIds") as string
     const ids = JSON.parse(noteIds) as number[]
 
@@ -138,7 +138,7 @@ export async function bulkApproveSubmissions(formData: FormData) {
 // Action to bulk reject submissions
 export async function bulkRejectSubmissions(formData: FormData) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createSupabaseClient({ withCookies: true })
     const noteIds = formData.get("noteIds") as string
     const rejectionReason = (formData.get("rejectionReason") as string) || "Content not suitable"
     const ids = JSON.parse(noteIds) as number[]

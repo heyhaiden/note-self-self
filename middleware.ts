@@ -1,75 +1,99 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createClient } from "@supabase/supabase-js"
 
-// This function can be marked `async` if using `await` inside
+// Simple in-memory cache for auth checks (in a real app, use Redis or similar)
+const authCache: Record<string, { isAdmin: boolean; timestamp: number }> = {}
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
+
 export async function middleware(request: NextRequest) {
+  // Skip middleware for auth routes
+  const isAuthRoute = ["/admin/login", "/admin/forgot-password", "/admin/reset-password"].includes(
+    request.nextUrl.pathname,
+  )
+
+  if (isAuthRoute) {
+    return NextResponse.next()
+  }
+
+  // Only protect admin routes
+  if (!request.nextUrl.pathname.startsWith("/admin")) {
+    return NextResponse.next()
+  }
+
   try {
-    // Create a Supabase client configured to use cookies
-    const supabase = createServerSupabaseClient()
+    // Get auth token from cookies
+    const authToken =
+      request.cookies.get("sb-access-token")?.value ||
+      request.cookies.get("sb-refresh-token")?.value ||
+      request.cookies.get("supabase-auth-token")?.value
+
+    if (!authToken) {
+      console.log("No auth token found, redirecting to login")
+      return NextResponse.redirect(new URL("/admin/login", request.url))
+    }
+
+    // Check cache first
+    const cacheKey = authToken.slice(0, 50) // Use part of the token as cache key
+    const cachedAuth = authCache[cacheKey]
+
+    if (cachedAuth && Date.now() - cachedAuth.timestamp < CACHE_TTL) {
+      if (cachedAuth.isAdmin) {
+        return NextResponse.next()
+      } else {
+        return NextResponse.redirect(new URL("/admin/login?error=unauthorized", request.url))
+      }
+    }
+
+    // Create a Supabase client with cookies from the request
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+      },
+      cookies: {
+        get(name) {
+          return request.cookies.get(name)?.value
+        },
+      },
+    })
 
     // Get the user's session
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // Check if the request is for an admin route
-    const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
-    const isAuthRoute =
-      request.nextUrl.pathname === "/admin/login" ||
-      request.nextUrl.pathname === "/admin/forgot-password" ||
-      request.nextUrl.pathname === "/admin/reset-password"
-
-    // If the route is an admin route but not an auth route, check for authentication
-    if (isAdminRoute && !isAuthRoute) {
-      // If the user is not authenticated, redirect to the login page
-      if (!session) {
-        const redirectUrl = new URL("/admin/login", request.url)
-        redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
-        return NextResponse.redirect(redirectUrl)
-      }
-
-      try {
-        // Check if the user has admin role
-        const { data: userRole, error } = await supabase
-          .from("admin_users")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single()
-
-        // If there's an error or the user doesn't have admin role, redirect to login
-        if (error || !userRole || userRole.role !== "admin") {
-          // Sign out the user
-          await supabase.auth.signOut()
-
-          const redirectUrl = new URL("/admin/login", request.url)
-          redirectUrl.searchParams.set("error", "unauthorized")
-          return NextResponse.redirect(redirectUrl)
-        }
-      } catch (error) {
-        console.error("Error checking admin role:", error)
-        const redirectUrl = new URL("/admin/login", request.url)
-        redirectUrl.searchParams.set("error", "server_error")
-        return NextResponse.redirect(redirectUrl)
-      }
+    // If no session, redirect to login
+    if (!session) {
+      console.log("No session found in middleware, redirecting to login")
+      return NextResponse.redirect(new URL("/admin/login", request.url))
     }
 
-    // If the user is authenticated and trying to access an auth route, redirect to admin dashboard
-    if (session && isAuthRoute) {
-      return NextResponse.redirect(new URL("/admin", request.url))
+    // Check if user exists in admin_users table
+    const { data, error } = await supabase.from("admin_users").select("id").eq("user_id", session.user.id).maybeSingle()
+
+    // Cache the result
+    authCache[cacheKey] = {
+      isAdmin: !error && !!data,
+      timestamp: Date.now(),
     }
 
+    // If not in admin_users table, redirect to login
+    if (error || !data) {
+      console.log("User not in admin_users table, redirecting to login")
+      return NextResponse.redirect(new URL("/admin/login?error=unauthorized", request.url))
+    }
+
+    // User is authenticated and is in admin_users table
     return NextResponse.next()
   } catch (error) {
-    console.error("Middleware error:", error)
-    // In case of any error, redirect to login
-    const redirectUrl = new URL("/admin/login", request.url)
-    redirectUrl.searchParams.set("error", "server_error")
-    return NextResponse.redirect(redirectUrl)
+    console.error("Error in middleware:", error)
+    return NextResponse.redirect(new URL("/admin/login?error=server", request.url))
   }
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: ["/admin/:path*"],
 }

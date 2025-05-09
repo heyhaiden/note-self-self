@@ -1,20 +1,13 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Search } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase"
-import type { Category } from "@/lib/supabase"
 
 // Gallery item type for the page
 type GalleryItem = {
   id: number
   content: string
-  category: {
-    id: number
-    name: string
-    slug: string
-  }
   artwork: {
     id: number
     image_url: string
@@ -30,10 +23,7 @@ type GalleryItem = {
 async function getGalleryData() {
   const supabase = createServerSupabaseClient()
 
-  // Fetch categories
-  const { data: categories } = await supabase.from("categories").select("*").order("name")
-
-  // Fetch approved notes with their categories and artwork
+  // Fetch approved notes with their artwork
   const { data: notes } = await supabase
     .from("notes")
     .select(`
@@ -43,7 +33,6 @@ async function getGalleryData() {
       approved_at,
       is_screenshot,
       screenshot_url,
-      categories:category_id(id, name, slug),
       artwork:artwork(id, image_url, alt_text)
     `)
     .eq("status", "approved")
@@ -55,7 +44,6 @@ async function getGalleryData() {
     notes?.map((item) => ({
       id: item.id,
       content: item.content,
-      category: item.categories as Category,
       artwork: item.artwork?.[0] || null,
       is_screenshot: item.is_screenshot,
       screenshot_url: item.screenshot_url,
@@ -64,13 +52,12 @@ async function getGalleryData() {
     })) || []
 
   return {
-    categories: categories || [],
     galleryItems,
   }
 }
 
 export default async function GalleryPage() {
-  const { categories, galleryItems } = await getGalleryData()
+  const { galleryItems } = await getGalleryData()
 
   return (
     <div className="relative min-h-screen bg-white text-black">
@@ -122,54 +109,15 @@ export default async function GalleryPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="all" className="mb-8">
-          <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto space-x-6 overflow-x-auto">
-            <TabsTrigger
-              value="all"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:text-black px-1 py-3 text-sm font-light"
-            >
-              All
-            </TabsTrigger>
-
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.slug}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:text-black px-1 py-3 text-sm font-light whitespace-nowrap"
-              >
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          <TabsContent value="all" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleryItems.length > 0 ? (
-                galleryItems.map((item) => <GalleryItem key={item.id} item={item} />)
-              ) : (
-                <div className="col-span-3 py-12 text-center">
-                  <p className="text-gray-500 font-light">No notes found. Be the first to submit!</p>
-                </div>
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {galleryItems.length > 0 ? (
+            galleryItems.map((item) => <GalleryItem key={item.id} item={item} />)
+          ) : (
+            <div className="col-span-3 py-12 text-center">
+              <p className="text-gray-500 font-light">No notes found. Be the first to submit!</p>
             </div>
-          </TabsContent>
-
-          {categories.map((category) => (
-            <TabsContent key={category.id} value={category.slug} className="mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {galleryItems.filter((item) => item.category?.slug === category.slug).length > 0 ? (
-                  galleryItems
-                    .filter((item) => item.category?.slug === category.slug)
-                    .map((item) => <GalleryItem key={item.id} item={item} />)
-                ) : (
-                  <div className="col-span-3 py-12 text-center">
-                    <p className="text-gray-500 font-light">No notes found in this category. Be the first to submit!</p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+          )}
+        </div>
 
         {galleryItems.length > 0 && (
           <div className="flex justify-center mt-12">
@@ -208,9 +156,6 @@ function GalleryItem({ item }: GalleryItemProps) {
           />
         </div>
         <div className="p-6 flex flex-col flex-grow">
-          <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-            {item.category?.name || "Uncategorized"}
-          </div>
           <p className="text-base font-light leading-relaxed flex-grow">{item.content}</p>
           <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
             <div className="w-12 h-[1px] bg-black"></div>

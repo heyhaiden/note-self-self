@@ -3,6 +3,12 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { initializeApp } from "@/lib/init"
+
+// Initialize the app (this runs only on the server)
+if (typeof window === "undefined") {
+  initializeApp().catch(console.error)
+}
 
 const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500"] })
 
