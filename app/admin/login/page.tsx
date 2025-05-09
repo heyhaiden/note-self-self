@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,32 +17,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isCheckingSession, setIsCheckingSession] = useState(true)
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
-
-      if (data.session) {
-        // Check if user has admin role
-        const { data: adminData, error: adminError } = await supabase
-          .from("admin_users")
-          .select("role")
-          .eq("user_id", data.session.user.id)
-          .single()
-
-        if (!adminError && adminData && adminData.role === "admin") {
-          // User is already logged in and is an admin, redirect to dashboard
-          router.push("/admin")
-        }
-      }
-
-      setIsCheckingSession(false)
-    }
-
-    checkSession()
-  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +24,7 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -59,27 +33,9 @@ export default function AdminLoginPage() {
         throw error
       }
 
-      if (!data.session) {
-        throw new Error("No session created")
-      }
-
-      // Check if user has admin role
-      const { data: adminData, error: adminError } = await supabase
-        .from("admin_users")
-        .select("role")
-        .eq("user_id", data.session.user.id)
-        .single()
-
-      if (adminError || !adminData || adminData.role !== "admin") {
-        // Sign out if not an admin
-        await supabase.auth.signOut()
-        throw new Error("You do not have permission to access the admin area")
-      }
-
       // Wait for auth state to be updated
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_IN') {
-          console.log("Auth state changed to SIGNED_IN, redirecting...")
           router.push("/admin")
           router.refresh()
         }
@@ -94,18 +50,9 @@ export default function AdminLoginPage() {
       setError(
         error instanceof Error ? error.message : "Failed to log in. Please check your credentials and try again.",
       )
+    } finally {
       setIsLoading(false)
     }
-  }
-
-  if (isCheckingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <p className="text-sm font-light">Checking authentication status...</p>
-        </div>
-      </div>
-    )
   }
 
   return (

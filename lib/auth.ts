@@ -13,43 +13,30 @@ export type AdminUser = {
 export async function requireAdmin() {
   const supabase = createServerSupabaseClient()
 
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-    if (!session) {
-      console.log("No session found in requireAdmin, redirecting to login")
-      redirect("/admin/login")
-    }
+  if (!session) {
+    redirect("/admin/login")
+  }
 
-    // Check if user has admin role in user_roles table
-    const { data: userRole, error } = await supabase
-      .from("admin_users")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .single()
+  // Check if user has admin role in user_roles table
+  const { data: userRole, error } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", session.user.id)
+    .single()
 
-    if (error) {
-      console.error("Error checking admin role:", error)
-      await supabase.auth.signOut()
-      redirect("/admin/login?error=server_error")
-    }
+  if (error || !userRole || userRole.role !== "admin") {
+    // Sign out the user if they're not an admin
+    await supabase.auth.signOut()
+    redirect("/admin/login?error=unauthorized")
+  }
 
-    if (!userRole || userRole.role !== "admin") {
-      console.log("User is not an admin in requireAdmin, signing out and redirecting")
-      await supabase.auth.signOut()
-      redirect("/admin/login?error=unauthorized")
-    }
-
-    console.log("User is authenticated and is an admin in requireAdmin")
-    return {
-      user: session.user,
-      role: userRole.role,
-    }
-  } catch (error) {
-    console.error("Error in requireAdmin:", error)
-    redirect("/admin/login?error=server_error")
+  return {
+    user: session.user,
+    role: userRole.role,
   }
 }
 

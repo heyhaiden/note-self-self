@@ -13,9 +13,7 @@ export default async function AdminPage({
   searchParams: { tab?: string; page?: string; limit?: string }
 }) {
   // Check if user is authenticated and has admin role
-  const { user } = await requireAdmin()
-
-  console.log("Admin page loaded for user:", user.email)
+  await requireAdmin()
 
   // Get the current tab from the URL or default to "pending"
   const currentTab = searchParams.tab || "pending"
