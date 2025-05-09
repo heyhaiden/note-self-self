@@ -33,9 +33,18 @@ export default function AdminLoginPage() {
         throw error
       }
 
-      // Redirect to admin dashboard
-      router.push("/admin")
-      router.refresh()
+      // Wait for auth state to be updated
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN') {
+          router.push("/admin")
+          router.refresh()
+        }
+      })
+
+      // Cleanup subscription after 5 seconds if not redirected
+      setTimeout(() => {
+        subscription.unsubscribe()
+      }, 5000)
     } catch (error) {
       console.error("Error logging in:", error)
       setError(
