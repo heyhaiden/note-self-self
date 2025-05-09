@@ -3,53 +3,61 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
 
 type AuthContextType = {
   user: User | null
+  isAdmin: boolean
   isLoading: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  isAdmin: false,
   isLoading: true,
   signOut: async () => {},
 })
 
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-}
+export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
-    let mounted = true
-
     // Get the current session
     const getSession = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession()
-        if (mounted) {
-          setUser(session?.user || null)
-          setIsLoading(false)
+
+        setUser(session?.user || null)
+
+        if (session?.user) {
+          // Check if user has admin role
+          const { data: adminData, error: adminError } = await supabase
+            .from("admin_users")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .single()
+
+          setIsAdmin(!adminError && adminData && adminData.role === "admin")
+        } else {
+          setIsAdmin(false)
         }
       } catch (error) {
         console.error("Error getting session:", error)
-        if (mounted) {
-          setIsLoading(false)
-        }
+        setUser(null)
+        setIsAdmin(false)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -57,31 +65,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (mounted) {
-        setUser(session?.user || null)
-        setIsLoading(false)
+      console.log("Auth state changed:", event)
+      setUser(session?.user || null)
 
-        // Refresh the page to update server components
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-          router.refresh()
+      if (session?.user) {
+        // Check if user has admin role
+        const { data: adminData, error: adminError } = await supabase
+          .from("admin_users")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single()
+
+        setIsAdmin(!adminError && adminData && adminData.role === "admin")
+      } else {
+        setIsAdmin(false)
+      }
+
+      setIsLoading(false)
+
+      // Redirect based on auth state
+      if (event === "SIGNED_IN") {
+        if (pathname?.startsWith("/admin/login")) {
+          router.push("/admin")
         }
+        router.refresh()
+      } else if (event === "SIGNED_OUT") {
+        if (pathname?.startsWith("/admin") && !pathname?.startsWith("/admin/login")) {
+          router.push("/admin/login")
+        }
+        router.refresh()
       }
     })
 
     return () => {
-      mounted = false
       authListener.subscription.unsubscribe()
     }
-  }, [router])
+  }, [router, pathname])
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut()
-      router.push("/admin/login")
-    } catch (error) {
-      console.error("Error signing out:", error)
-    }
+    await supabase.auth.signOut()
+    router.push("/admin/login")
   }
 
-  return <AuthContext.Provider value={{ user, isLoading, signOut }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, isAdmin, isLoading, signOut }}>{children}</AuthContext.Provider>
 }
