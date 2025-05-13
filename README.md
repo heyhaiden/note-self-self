@@ -23,18 +23,6 @@ The project draws inspiration from the iPhone Notes app - a private space where 
 
 ![AI Art Generation Process](public/ai-process-screenshot.png)
 
-### Architecture
-
-```mermaid
-graph TD
-    A[iPhone Notes] --> B[Anonymous Submission]
-    B --> C[Admin Curation]
-    C --> D[AI Interpretation]
-    D --> E[Art Generation]
-    E --> F[Gallery Display]
-    F --> G[Social Media Integration]
-```
-
 ## 🏗️ Technical Architecture
 
 ### Frontend
