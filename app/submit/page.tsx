@@ -51,8 +51,8 @@ export default function SubmitPage() {
         throw new Error(errorData.error || "Failed to submit note")
       }
 
-      // Redirect to processing page to show the animation
-      router.push("/submit/processing")
+      // Redirect to success page
+      router.push("/submit/success")
     } catch (err) {
       console.error("Error submitting note:", err)
       setError(err instanceof Error ? err.message : "An unexpected error occurred")
@@ -75,6 +75,9 @@ export default function SubmitPage() {
             <Link href="/about" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
               About
             </Link>
+            <Button asChild variant="outline" className="rounded-none border-black text-sm font-light tracking-wide">
+              <Link href="/submit">Submit</Link>
+            </Button>
           </nav>
         </div>
       </header>

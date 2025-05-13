@@ -12,6 +12,9 @@ export default function Home() {
             NOTE<span className="font-normal">SELF</span>SELF
           </Link>
           <nav className="flex items-center space-x-6">
+            <Link href="/gallery" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
+              Gallery
+            </Link>
             <Link href="/about" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
               About
             </Link>

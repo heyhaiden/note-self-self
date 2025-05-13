@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Search } from "lucide-react"
+import { getAllNotes, Note } from "@/lib/notes-storage"
 
 // Types for our data
 type Category = {
@@ -27,48 +28,35 @@ type GalleryItem = {
   approved_at: string | null
 }
 
-// Mock data for development
-const mockCategories = [
+// Mock categories for now
+const categories = [
   { id: 1, name: "General", slug: "general" },
   { id: 2, name: "Personal", slug: "personal" }
 ];
 
-const mockGalleryItems = [
-  {
-    id: 1,
-    content: "Sample note 1",
-    category: mockCategories[0],
-    artwork: {
-      id: 1,
-      image_url: "/placeholder.svg?height=600&width=600&query=minimalist abstract line art, black and white",
-      alt_text: "Abstract representation of note: Sample note 1"
-    },
-    is_screenshot: false,
-    screenshot_url: null,
-    created_at: new Date().toISOString(),
-    approved_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    content: "Sample note 2",
-    category: mockCategories[1],
-    artwork: {
-      id: 2,
-      image_url: "/placeholder.svg?height=600&width=600&query=minimalist abstract line art, black and white",
-      alt_text: "Abstract representation of note: Sample note 2"
-    },
-    is_screenshot: false,
-    screenshot_url: null,
-    created_at: new Date().toISOString(),
-    approved_at: new Date().toISOString()
-  }
-];
-
-// Fetch data from mock data
-async function getGalleryData() {
+// Convert Note to GalleryItem
+function convertNoteToGalleryItem(note: Note): GalleryItem {
   return {
-    categories: mockCategories,
-    galleryItems: mockGalleryItems,
+    id: note.id,
+    content: note.content,
+    category: categories[0], // Default to General category for now
+    artwork: note.artwork || null,
+    is_screenshot: false,
+    screenshot_url: null,
+    created_at: note.created_at,
+    approved_at: note.approved_at
+  }
+}
+
+// Fetch data from local storage
+async function getGalleryData() {
+  const notes = await getAllNotes()
+  const approvedNotes = notes.filter(note => note.status === 'approved')
+  const galleryItems = approvedNotes.map(convertNoteToGalleryItem)
+
+  return {
+    categories,
+    galleryItems,
   }
 }
 
@@ -201,26 +189,24 @@ function GalleryItem({ item }: GalleryItemProps) {
     `/placeholder.svg?height=400&width=400&query=minimalist abstract line art, black and white, ${item.id}`
 
   return (
-    <Link href={`/gallery/${item.id}`} className="group">
-      <div className="border border-gray-200 group-hover:border-gray-300 transition-colors h-full flex flex-col">
-        <div className="aspect-square bg-gray-50 relative overflow-hidden">
-          <img
-            src={imageSource || "/placeholder.svg"}
-            alt={item.artwork?.alt_text || `Abstract representation of note: ${item.content.substring(0, 30)}...`}
-            className="w-full h-full object-cover"
-          />
+    <div className="border border-gray-200 h-full flex flex-col">
+      <div className="aspect-square bg-gray-50 relative overflow-hidden">
+        <img
+          src={imageSource || "/placeholder.svg"}
+          alt={item.artwork?.alt_text || `Abstract representation of note: ${item.content.substring(0, 30)}...`}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
+          {item.category?.name || "Uncategorized"}
         </div>
-        <div className="p-6 flex flex-col flex-grow">
-          <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-            {item.category?.name || "Uncategorized"}
-          </div>
-          <p className="text-base font-light leading-relaxed flex-grow">{item.content}</p>
-          <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-            <div className="w-12 h-[1px] bg-black"></div>
-            <span className="text-xs font-light text-gray-500">View</span>
-          </div>
+        <p className="text-base font-light leading-relaxed flex-grow">{item.content}</p>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+          <div className="w-12 h-[1px] bg-black"></div>
+          <span className="text-xs font-light text-gray-500">View</span>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
