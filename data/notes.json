@@ -1,18 +1,26 @@
 [
   {
     "id": 1,
-    "content": "Musing \n\nHow does a cities average color of the sky influence architectural style and color schemes\n",
-    "status": "pending",
-    "created_at": "2025-05-13T12:22:00.746Z",
-    "approved_at": null,
-    "artwork": null
+    "content": "Living together, avoidant when stressed",
+    "status": "approved",
+    "created_at": "2024-03-20T10:30:00.000Z",
+    "approved_at": "2024-03-20T10:35:00.000Z",
+    "artwork": {
+      "id": 1 ,
+      "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/4bd7e368-fbf8-4c3e-8f91-d87b66f16481.webp",
+      "alt_text": "Abstract representation of architectural musings"
+    }
   },
   {
     "id": 2,
-    "content": "Musing \n\nHow does a cities average color of the sky influence architectural style and color schemes\n",
-    "status": "pending",
+    "content": "How does a cities average color of the sky influence architectural style and color schemes\n",
+    "status": "approved",
     "created_at": "2025-05-13T12:23:08.659Z",
     "approved_at": null,
-    "artwork": null
+    "artwork": {
+      "id": 2,
+      "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/d3d6d9ee-fbc9-4a0c-94f1-7922f81ae848.webp",
+      "alt_text": "Abstract representation of architectural musings"
+    }
   }
 ]
