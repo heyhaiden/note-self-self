@@ -1,71 +1,109 @@
 import fs from 'fs'
 import path from 'path'
 
-const STORAGE_FILE = path.join(process.cwd(), 'data', 'notes.json')
-
-// Ensure the data directory exists
-if (!fs.existsSync(path.join(process.cwd(), 'data'))) {
-  fs.mkdirSync(path.join(process.cwd(), 'data'))
-}
-
-// Initialize the storage file if it doesn't exist
-if (!fs.existsSync(STORAGE_FILE)) {
-  fs.writeFileSync(STORAGE_FILE, JSON.stringify([]))
-}
-
 export type Note = {
   id: number
+  title: string
   content: string
   status: 'pending' | 'approved' | 'rejected'
-  created_at: string
-  approved_at: string | null
-  artwork?: {
+  artwork: {
     id: number
     image_url: string
     alt_text: string | null
   } | null
+  created_at: string
+  approved_at: string | null
 }
 
-export async function saveNote(content: string): Promise<Note> {
-  const notes = await getAllNotes()
-  
+const DATA_FILE = path.join(process.cwd(), 'data', 'notes.json')
+
+// Ensure data directory exists
+if (!fs.existsSync(path.dirname(DATA_FILE))) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
+}
+
+// Initialize data file if it doesn't exist
+if (!fs.existsSync(DATA_FILE)) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify([]))
+}
+
+export function saveNote(content: string): Note {
+  const notes = getAllNotes()
   const newNote: Note = {
     id: notes.length + 1,
+    title: "", // Empty title by default
     content,
     status: 'pending',
+    artwork: null,
     created_at: new Date().toISOString(),
-    approved_at: null,
-    artwork: null
+    approved_at: null
   }
-
-  notes.push(newNote)
-  await fs.promises.writeFile(STORAGE_FILE, JSON.stringify(notes, null, 2))
   
+  notes.push(newNote)
+  fs.writeFileSync(DATA_FILE, JSON.stringify(notes, null, 2))
   return newNote
 }
 
-export async function getAllNotes(): Promise<Note[]> {
-  const data = await fs.promises.readFile(STORAGE_FILE, 'utf-8')
-  return JSON.parse(data)
+export function getAllNotes(): Note[] {
+  try {
+    const data = fs.readFileSync(DATA_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading notes:', error)
+    return []
+  }
 }
 
-export async function getNoteById(id: number): Promise<Note | null> {
-  const notes = await getAllNotes()
+export function getNoteById(id: number): Note | null {
+  const notes = getAllNotes()
   return notes.find(note => note.id === id) || null
 }
 
-export async function updateNoteStatus(id: number, status: 'approved' | 'rejected'): Promise<Note | null> {
-  const notes = await getAllNotes()
+export function updateNoteStatus(id: number, status: 'approved' | 'rejected'): Note | null {
+  const notes = getAllNotes()
   const noteIndex = notes.findIndex(note => note.id === id)
   
   if (noteIndex === -1) return null
   
-  notes[noteIndex] = {
+  const updatedNote = {
     ...notes[noteIndex],
     status,
     approved_at: status === 'approved' ? new Date().toISOString() : null
   }
   
-  await fs.promises.writeFile(STORAGE_FILE, JSON.stringify(notes, null, 2))
-  return notes[noteIndex]
+  notes[noteIndex] = updatedNote
+  fs.writeFileSync(DATA_FILE, JSON.stringify(notes, null, 2))
+  return updatedNote
+}
+
+export function updateNoteArtwork(id: number, artwork: { id: number; image_url: string; alt_text: string | null }): Note | null {
+  const notes = getAllNotes()
+  const noteIndex = notes.findIndex(note => note.id === id)
+  
+  if (noteIndex === -1) return null
+  
+  const updatedNote = {
+    ...notes[noteIndex],
+    artwork
+  }
+  
+  notes[noteIndex] = updatedNote
+  fs.writeFileSync(DATA_FILE, JSON.stringify(notes, null, 2))
+  return updatedNote
+}
+
+export function updateNoteTitle(id: number, title: string): Note | null {
+  const notes = getAllNotes()
+  const noteIndex = notes.findIndex(note => note.id === id)
+  
+  if (noteIndex === -1) return null
+  
+  const updatedNote = {
+    ...notes[noteIndex],
+    title
+  }
+  
+  notes[noteIndex] = updatedNote
+  fs.writeFileSync(DATA_FILE, JSON.stringify(notes, null, 2))
+  return updatedNote
 } 

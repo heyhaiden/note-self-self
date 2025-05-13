@@ -1,22 +1,15 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Search } from "lucide-react"
 import { getAllNotes, Note } from "@/lib/notes-storage"
-
-// Types for our data
-type Category = {
-  id: number
-  name: string
-  slug: string
-}
+import { GalleryItem } from "./components/gallery-item"
 
 // Gallery item type for the page
 type GalleryItem = {
   id: number
+  title: string
   content: string
-  category: Category
   artwork: {
     id: number
     image_url: string
@@ -28,18 +21,12 @@ type GalleryItem = {
   approved_at: string | null
 }
 
-// Mock categories for now
-const categories = [
-  { id: 1, name: "General", slug: "general" },
-  { id: 2, name: "Personal", slug: "personal" }
-];
-
 // Convert Note to GalleryItem
 function convertNoteToGalleryItem(note: Note): GalleryItem {
   return {
     id: note.id,
+    title: note.title,
     content: note.content,
-    category: categories[0], // Default to General category for now
     artwork: note.artwork || null,
     is_screenshot: false,
     screenshot_url: null,
@@ -55,13 +42,12 @@ async function getGalleryData() {
   const galleryItems = approvedNotes.map(convertNoteToGalleryItem)
 
   return {
-    categories,
     galleryItems,
   }
 }
 
 export default async function GalleryPage() {
-  const { categories, galleryItems } = await getGalleryData()
+  const { galleryItems } = await getGalleryData()
 
   return (
     <div className="relative min-h-screen bg-white text-black">
@@ -113,54 +99,15 @@ export default async function GalleryPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="all" className="mb-8">
-          <TabsList className="bg-transparent border-b border-gray-200 rounded-none p-0 h-auto space-x-6 overflow-x-auto">
-            <TabsTrigger
-              value="all"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:text-black px-1 py-3 text-sm font-light"
-            >
-              All
-            </TabsTrigger>
-
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.slug}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:text-black px-1 py-3 text-sm font-light whitespace-nowrap"
-              >
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          <TabsContent value="all" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleryItems.length > 0 ? (
-                galleryItems.map((item) => <GalleryItem key={item.id} item={item} />)
-              ) : (
-                <div className="col-span-3 py-12 text-center">
-                  <p className="text-gray-500 font-light">No notes found. Be the first to submit!</p>
-                </div>
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {galleryItems.length > 0 ? (
+            galleryItems.map((item) => <GalleryItem key={item.id} item={item} />)
+          ) : (
+            <div className="col-span-3 py-12 text-center">
+              <p className="text-gray-500 font-light">No notes found. Be the first to submit!</p>
             </div>
-          </TabsContent>
-
-          {categories.map((category) => (
-            <TabsContent key={category.id} value={category.slug} className="mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {galleryItems.filter((item) => item.category?.slug === category.slug).length > 0 ? (
-                  galleryItems
-                    .filter((item) => item.category?.slug === category.slug)
-                    .map((item) => <GalleryItem key={item.id} item={item} />)
-                ) : (
-                  <div className="col-span-3 py-12 text-center">
-                    <p className="text-gray-500 font-light">No notes found in this category. Be the first to submit!</p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+          )}
+        </div>
 
         {galleryItems.length > 0 && (
           <div className="flex justify-center mt-12">
@@ -172,40 +119,6 @@ export default async function GalleryPage() {
             </Button>
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-interface GalleryItemProps {
-  item: GalleryItem
-}
-
-function GalleryItem({ item }: GalleryItemProps) {
-  // Determine the image source - either artwork image, screenshot, or placeholder
-  const imageSource =
-    item.artwork?.image_url ||
-    (item.is_screenshot && item.screenshot_url) ||
-    `/placeholder.svg?height=400&width=400&query=minimalist abstract line art, black and white, ${item.id}`
-
-  return (
-    <div className="border border-gray-200 h-full flex flex-col">
-      <div className="aspect-square bg-gray-50 relative overflow-hidden">
-        <img
-          src={imageSource || "/placeholder.svg"}
-          alt={item.artwork?.alt_text || `Abstract representation of note: ${item.content.substring(0, 30)}...`}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-6 flex flex-col flex-grow">
-        <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-          {item.category?.name || "Uncategorized"}
-        </div>
-        <p className="text-base font-light leading-relaxed flex-grow">{item.content}</p>
-        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-          <div className="w-12 h-[1px] bg-black"></div>
-          <span className="text-xs font-light text-gray-500">View</span>
-        </div>
       </div>
     </div>
   )

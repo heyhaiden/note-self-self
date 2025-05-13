@@ -1,7 +1,8 @@
 [
   {
     "id": 1,
-    "content": "Living together, avoidant when stressed",
+    "title": "Living together, avoidant when stressed",
+    "content": "Dance floor thoughts \n\nCan't believe I'm living in this city with you \n5 months!\n\nCan't imagine any other way. You complete me and challenge me in ways I've been too scared to do alone \n\n**Also living together I've noticed that I think we're both avoidant when we're stressed \n\nYes definitely.",
     "status": "approved",
     "created_at": "2024-03-20T10:30:00.000Z",
     "approved_at": "2024-03-20T10:35:00.000Z",
@@ -13,7 +14,8 @@
   },
   {
     "id": 2,
-    "content": "How does a cities average color of the sky influence architectural style and color schemes\n",
+    "title": "Architectural style influenced by sky",
+    "content": "Musing\n\nHow does a cities average color of the sky influence architectural style and color schemes",
     "status": "approved",
     "created_at": "2025-05-13T12:23:08.659Z",
     "approved_at": null,
