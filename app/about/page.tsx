@@ -56,36 +56,6 @@ export default function AboutPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-light mb-4">How It Works</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                  <div className="text-4xl font-light mb-4">01</div>
-                  <h3 className="text-lg font-normal mb-2">Submit Your Note</h3>
-                  <p className="text-base font-light leading-relaxed">
-                    Screenshot or copy/paste directly from your notes app. Submit anything from deep reflections to
-                    shopping lists—it's all welcome here.
-                  </p>
-                </div>
-                <div>
-                  <div className="text-4xl font-light mb-4">02</div>
-                  <h3 className="text-lg font-normal mb-2">Transformation</h3>
-                  <p className="text-base font-light leading-relaxed">
-                    We convert your note into minimalist black and white line art that captures its essence while
-                    preserving your anonymity.
-                  </p>
-                </div>
-                <div>
-                  <div className="text-4xl font-light mb-4">03</div>
-                  <h3 className="text-lg font-normal mb-2">Join the Gallery</h3>
-                  <p className="text-base font-light leading-relaxed">
-                    Your transformed note becomes part of our collection, connecting with others who might be thinking
-                    the same thing.
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section>
               <h2 className="text-2xl font-light mb-4">What to Submit</h2>
               <p className="text-base font-light leading-relaxed mb-4">
                 There are no rules about what makes a "good" submission. We want to see it all:
