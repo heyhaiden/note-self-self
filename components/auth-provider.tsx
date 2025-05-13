@@ -1,88 +1,87 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+
+import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
 
 type AuthContextType = {
   user: User | null
-  isAdmin: boolean
   isLoading: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isAdmin: false,
   isLoading: true,
   signOut: async () => {},
 })
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Memoize the signOut function to prevent unnecessary re-renders
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
-    router.push("/admin/login")
-  }, [router])
-
-  // Only check auth once on initial load
   useEffect(() => {
-    let isMounted = true
+    let mounted = true
 
-    const checkAuth = async () => {
+    // Get the current session
+    const getSession = async () => {
       try {
-        // Get session
         const {
           data: { session },
         } = await supabase.auth.getSession()
-
-        if (!isMounted) return
-
-        if (session?.user) {
-          setUser(session.user)
-
-          // Check if user is admin
-          const { data } = await supabase.from("admin_users").select("id").eq("user_id", session.user.id).maybeSingle()
-
-          if (isMounted) {
-            setIsAdmin(!!data)
-          }
+        if (mounted) {
+          setUser(session?.user || null)
+          setIsLoading(false)
         }
       } catch (error) {
-        console.error("Error checking auth:", error)
-      } finally {
-        if (isMounted) {
+        console.error("Error getting session:", error)
+        if (mounted) {
           setIsLoading(false)
         }
       }
     }
 
-    // Set up auth state listener for sign out only
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT" && isMounted) {
-        setUser(null)
-        setIsAdmin(false)
+    getSession()
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (mounted) {
+        setUser(session?.user || null)
+        setIsLoading(false)
+
+        // Refresh the page to update server components
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+          router.refresh()
+        }
       }
     })
 
-    checkAuth()
-
     return () => {
-      isMounted = false
-      subscription.unsubscribe()
+      mounted = false
+      authListener.subscription.unsubscribe()
     }
-  }, [])
+  }, [router])
 
-  return <AuthContext.Provider value={{ user, isAdmin, isLoading, signOut }}>{children}</AuthContext.Provider>
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push("/admin/login")
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
+  }
+
+  return <AuthContext.Provider value={{ user, isLoading, signOut }}>{children}</AuthContext.Provider>
 }

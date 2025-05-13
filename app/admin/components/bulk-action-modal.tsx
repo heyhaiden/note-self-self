@@ -9,15 +9,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { bulkApproveSubmissions, bulkRejectSubmissions } from "../actions"
 import { useToast } from "@/hooks/use-toast"
+import type { Category } from "@/lib/supabase"
 
 interface BulkActionModalProps {
   isOpen: boolean
   onClose: () => void
   selectedIds: number[]
+  categories: Category[]
 }
 
-export function BulkActionModal({ isOpen, onClose, selectedIds }: BulkActionModalProps) {
+export function BulkActionModal({ isOpen, onClose, selectedIds, categories }: BulkActionModalProps) {
   const [action, setAction] = useState<"approve" | "reject">("approve")
+  const [categoryId, setCategoryId] = useState<string>("")
   const [rejectionReason, setRejectionReason] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
@@ -39,6 +42,7 @@ export function BulkActionModal({ isOpen, onClose, selectedIds }: BulkActionModa
 
     let result
     if (action === "approve") {
+      formData.append("categoryId", categoryId)
       result = await bulkApproveSubmissions(formData)
     } else {
       formData.append("rejectionReason", rejectionReason)
@@ -84,6 +88,26 @@ export function BulkActionModal({ isOpen, onClose, selectedIds }: BulkActionModa
                 </SelectContent>
               </Select>
             </div>
+
+            {action === "approve" && (
+              <div className="space-y-2">
+                <label htmlFor="category" className="text-sm font-light">
+                  Select Category
+                </label>
+                <Select value={categoryId} onValueChange={setCategoryId}>
+                  <SelectTrigger className="rounded-none border-gray-300 focus:border-black focus:ring-black">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {action === "reject" && (
               <div className="space-y-2">

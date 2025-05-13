@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase"
-import type { User } from "@supabase/supabase-js"
+import { redirect } from "next/navigation"
 
 // Type for admin user
 export type AdminUser = {
@@ -9,63 +9,74 @@ export type AdminUser = {
   created_at: string
 }
 
+// Check if user is authenticated and has admin role
+export async function requireAdmin() {
+  const supabase = createServerSupabaseClient()
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect("/admin/login")
+  }
+
+  // Check if user has admin role in user_roles table
+  const { data: userRole, error } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", session.user.id)
+    .single()
+
+  if (error || !userRole || userRole.role !== "admin") {
+    // Sign out the user if they're not an admin
+    await supabase.auth.signOut()
+    redirect("/admin/login?error=unauthorized")
+  }
+
+  return {
+    user: session.user,
+    role: userRole.role,
+  }
+}
+
 // Get current user if authenticated
-export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const supabase = createServerSupabaseClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return session?.user || null
-  } catch (error) {
-    console.error("Error getting current user:", error)
+export async function getCurrentUser() {
+  const supabase = createServerSupabaseClient()
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
     return null
   }
+
+  return session.user
 }
 
 // Check if user is an admin
-export async function isAdmin(userId?: string): Promise<boolean> {
-  try {
-    if (!userId) {
-      const user = await getCurrentUser()
-      if (!user) return false
-      userId = user.id
-    }
+export async function isAdmin() {
+  const supabase = createServerSupabaseClient()
 
-    const supabase = createServerSupabaseClient()
-    const { data, error } = await supabase.from("admin_users").select("role").eq("user_id", userId).single()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-    return !error && data?.role === "admin"
-  } catch (error) {
-    console.error("Error checking admin status:", error)
+  if (!session) {
     return false
   }
-}
 
-// Get admin user data
-export async function getAdminUser(userId?: string): Promise<AdminUser | null> {
-  try {
-    if (!userId) {
-      const user = await getCurrentUser()
-      if (!user) return null
-      userId = user.id
-    }
+  // Check if user has admin role in admin_users table
+  const { data: userRole, error } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", session.user.id)
+    .single()
 
-    const supabase = createServerSupabaseClient()
-    const { data, error } = await supabase.from("admin_users").select("*").eq("user_id", userId).single()
-
-    if (error || !data) return null
-
-    const userDetails = await supabase.auth.admin.getUserById(userId)
-
-    return {
-      id: userId,
-      email: userDetails.data.user?.email || "Unknown",
-      role: data.role,
-      created_at: data.created_at,
-    }
-  } catch (error) {
-    console.error("Error getting admin user:", error)
-    return null
+  if (error || !userRole || userRole.role !== "admin") {
+    return false
   }
+
+  return true
 }

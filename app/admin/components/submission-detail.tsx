@@ -107,6 +107,12 @@ export function SubmissionDetail({ isOpen, onClose, submissionId }: SubmissionDe
                       <span className="mt-1 p-2 bg-red-50 text-red-800 text-xs">{submission.rejection_reason}</span>
                     </div>
                   )}
+                  {submission.category_id && submission.categories && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Category:</span>
+                      <span>{submission.categories.name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

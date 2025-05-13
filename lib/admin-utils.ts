@@ -1,39 +1,10 @@
-import { createSupabaseClient } from "@/lib/supabase-client"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
-// Optimized function to fetch submission counts
-export async function getSubmissionCounts() {
-  const supabase = createSupabaseClient()
-
-  // Get today's date at midnight
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayISOString = today.toISOString()
-
-  // Use the new database function
-  const { data, error } = await supabase.rpc("get_submission_counts", { today_date: todayISOString })
-
-  if (error) {
-    console.error("Error fetching counts:", error)
-    throw new Error("Failed to fetch submission counts")
-  }
-
-  // Return the counts with default values if data is null
-  return {
-    pending: data?.pending || 0,
-    approved: data?.approved || 0,
-    rejected: data?.rejected || 0,
-    todayPending: data?.today_pending || 0,
-    todayApproved: data?.today_approved || 0,
-    todayRejected: data?.today_rejected || 0,
-  }
-}
-
-// Optimized function to fetch pending submissions with pagination
+// Function to fetch pending submissions
 export async function getPendingSubmissions(page = 1, limit = 10) {
-  const supabase = createSupabaseClient()
+  const supabase = createServerSupabaseClient()
   const offset = (page - 1) * limit
 
-  // Use a single query with count option
   const { data, error, count } = await supabase
     .from("notes")
     .select("*", { count: "exact" })
@@ -55,15 +26,14 @@ export async function getPendingSubmissions(page = 1, limit = 10) {
   }
 }
 
-// Optimized function to fetch processed submissions with pagination
+// Function to fetch processed submissions
 export async function getProcessedSubmissions(page = 1, limit = 10) {
-  const supabase = createSupabaseClient()
+  const supabase = createServerSupabaseClient()
   const offset = (page - 1) * limit
 
-  // Use a single query with count option
   const { data, error, count } = await supabase
     .from("notes")
-    .select("*", { count: "exact" })
+    .select("*, categories:category_id(*)", { count: "exact" })
     .in("status", ["approved", "rejected"])
     .order("updated_at", { ascending: false })
     .range(offset, offset + limit - 1)
@@ -82,32 +52,77 @@ export async function getProcessedSubmissions(page = 1, limit = 10) {
   }
 }
 
-// Function to get a single submission by ID with caching
-const submissionCache = new Map<number, any>()
+// Function to get submission counts
+export async function getSubmissionCounts() {
+  const supabase = createServerSupabaseClient()
 
-export async function getSubmissionById(id: number) {
-  // Check cache first
-  if (submissionCache.has(id)) {
-    return submissionCache.get(id)
+  // Get pending count
+  const { count: pendingCount, error: pendingError } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending")
+
+  // Get approved count
+  const { count: approvedCount, error: approvedError } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "approved")
+
+  // Get rejected count
+  const { count: rejectedCount, error: rejectedError } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "rejected")
+
+  // Get today's counts
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayISOString = today.toISOString()
+
+  const { count: todayPendingCount } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending")
+    .gte("created_at", todayISOString)
+
+  const { count: todayApprovedCount } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "approved")
+    .gte("approved_at", todayISOString)
+
+  const { count: todayRejectedCount } = await supabase
+    .from("notes")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "rejected")
+    .gte("updated_at", todayISOString)
+
+  if (pendingError || approvedError || rejectedError) {
+    console.error("Error fetching counts:", pendingError || approvedError || rejectedError)
+    throw new Error("Failed to fetch submission counts")
   }
 
-  const supabase = createSupabaseClient()
+  return {
+    pending: pendingCount || 0,
+    approved: approvedCount || 0,
+    rejected: rejectedCount || 0,
+    todayPending: todayPendingCount || 0,
+    todayApproved: todayApprovedCount || 0,
+    todayRejected: todayRejectedCount || 0,
+  }
+}
 
-  const { data, error } = await supabase.from("notes").select("*").eq("id", id).single()
+// Function to get a single submission by ID
+export async function getSubmissionById(id: number) {
+  const supabase = createServerSupabaseClient()
+
+  const { data, error } = await supabase.from("notes").select("*, categories:category_id(*)").eq("id", id).single()
 
   if (error) {
     console.error("Error fetching submission:", error)
     throw new Error("Failed to fetch submission")
   }
 
-  // Cache the result (with a reasonable limit)
-  if (submissionCache.size > 100) {
-    // Clear oldest entries if cache gets too large
-    const oldestKey = submissionCache.keys().next().value
-    submissionCache.delete(oldestKey)
-  }
-
-  submissionCache.set(id, data)
   return data
 }
 
@@ -119,7 +134,7 @@ export async function generateArtwork(noteId: number, noteContent: string) {
     noteContent.substring(0, 50),
   )}`
 
-  const supabase = createSupabaseClient({ admin: true })
+  const supabase = createServerSupabaseClient()
 
   // Create artwork record
   const { data, error } = await supabase

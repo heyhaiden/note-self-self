@@ -92,12 +92,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
-@keyframes progress {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
-}

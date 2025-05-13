@@ -7,12 +7,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     // Get query parameters
+    const category = searchParams.get("category")
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "12")
     const offset = (page - 1) * limit
 
     // Build query
-    const query = supabase
+    let query = supabase
       .from("notes")
       .select(`
         id,
@@ -21,11 +22,17 @@ export async function GET(request: NextRequest) {
         approved_at,
         is_screenshot,
         screenshot_url,
+        categories:category_id(id, name, slug, description),
         artwork:artwork(id, image_url, alt_text)
       `)
       .eq("status", "approved")
       .order("approved_at", { ascending: false })
       .range(offset, offset + limit - 1)
+
+    // Add category filter if provided
+    if (category) {
+      query = query.eq("categories.slug", category)
+    }
 
     // Execute query
     const { data, error, count } = await query
@@ -39,6 +46,7 @@ export async function GET(request: NextRequest) {
     const galleryItems = data.map((item) => ({
       id: item.id,
       content: item.content,
+      category: item.categories,
       artwork: item.artwork?.[0] || null,
       is_screenshot: item.is_screenshot,
       screenshot_url: item.screenshot_url,
