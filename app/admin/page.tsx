@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft } from "lucide-react"
 import { getAllNotes } from "@/lib/notes-storage"
 import { SubmissionList } from "./components/submission-list"
+import { LogoutButton } from "./components/logout-button"
 
 export default async function AdminPage() {
   const notes = await getAllNotes()
@@ -26,9 +27,7 @@ export default async function AdminPage() {
             <Link href="/about" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
               About
             </Link>
-            <Button asChild variant="outline" className="rounded-none border-black text-sm font-light tracking-wide">
-              <Link href="/submit">Submit</Link>
-            </Button>
+            <LogoutButton />
           </nav>
         </div>
       </header>
