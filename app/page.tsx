@@ -24,35 +24,35 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-20 md:pt-32 pb-16 md:pb-24">
-        {/* Background Image - positioned to the right */}
-        <div className="absolute top-0 right-0 w-full md:w-2/3 h-full z-[-1] overflow-hidden opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent"></div>
-          <img
-            src="/minimalist-abstract-line-art-bw.png"
-            alt=""
-            className="w-full h-full object-cover object-right"
-            aria-hidden="true"
-          />
-        </div>
-        <div className="container px-4 md:px-6 relative">
-          <div className="max-w-3xl mx-auto">
-            <div className="mb-8 text-xs tracking-widest uppercase">NoteSelfSelf</div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-[1.1]">
-              big feelings,
-              <br />
-              <span className="font-normal">lo profile.</span>
-            </h1>
-            <p className="text-lg md:text-xl font-light mb-10 max-w-xl leading-relaxed">
-              Share the unfiltered thoughts from your notes app, transformed into minimalist line art. From grocery
-              lists to existential crises—we want to see it all.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                asChild
-                className="rounded-none bg-black text-white hover:bg-gray-800 px-8 py-6 text-sm font-light tracking-wide"
-              >
-                <Link href="/submit">Share your thoughts</Link>
-              </Button>
+        <div className="container px-4 md:px-6">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1">
+              <div className="mb-8 text-xs tracking-widest uppercase">NoteSelfSelf</div>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-[1.1]">
+                big feelings,
+                <br />
+                <span className="font-normal">lo profile.</span>
+              </h1>
+              <p className="text-lg md:text-xl font-light mb-10 max-w-xl leading-relaxed">
+                Share the unfiltered thoughts from your notes app, transformed into minimalist line art. From grocery
+                lists to existential crises—we want to see it all.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  asChild
+                  className="rounded-none bg-black text-white hover:bg-gray-800 px-8 py-6 text-sm font-light tracking-wide"
+                >
+                  <Link href="/submit">Share your thoughts</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 w-full aspect-square">
+              <img
+                src="/notes_app_hero"
+                alt=""
+                className="w-full h-full object-cover"
+                aria-hidden="true"
+              />
             </div>
           </div>
         </div>
