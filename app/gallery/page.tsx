@@ -3,18 +3,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Search } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
-import type { Category } from "@/lib/supabase"
+
+// Types for our data
+type Category = {
+  id: number
+  name: string
+  slug: string
+}
 
 // Gallery item type for the page
 type GalleryItem = {
   id: number
   content: string
-  category: {
-    id: number
-    name: string
-    slug: string
-  }
+  category: Category
   artwork: {
     id: number
     image_url: string
@@ -26,46 +27,48 @@ type GalleryItem = {
   approved_at: string | null
 }
 
-// Fetch data from Supabase
+// Mock data for development
+const mockCategories = [
+  { id: 1, name: "General", slug: "general" },
+  { id: 2, name: "Personal", slug: "personal" }
+];
+
+const mockGalleryItems = [
+  {
+    id: 1,
+    content: "Sample note 1",
+    category: mockCategories[0],
+    artwork: {
+      id: 1,
+      image_url: "/placeholder.svg?height=600&width=600&query=minimalist abstract line art, black and white",
+      alt_text: "Abstract representation of note: Sample note 1"
+    },
+    is_screenshot: false,
+    screenshot_url: null,
+    created_at: new Date().toISOString(),
+    approved_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    content: "Sample note 2",
+    category: mockCategories[1],
+    artwork: {
+      id: 2,
+      image_url: "/placeholder.svg?height=600&width=600&query=minimalist abstract line art, black and white",
+      alt_text: "Abstract representation of note: Sample note 2"
+    },
+    is_screenshot: false,
+    screenshot_url: null,
+    created_at: new Date().toISOString(),
+    approved_at: new Date().toISOString()
+  }
+];
+
+// Fetch data from mock data
 async function getGalleryData() {
-  const supabase = createServerSupabaseClient()
-
-  // Fetch categories
-  const { data: categories } = await supabase.from("categories").select("*").order("name")
-
-  // Fetch approved notes with their categories and artwork
-  const { data: notes } = await supabase
-    .from("notes")
-    .select(`
-      id,
-      content,
-      created_at,
-      approved_at,
-      is_screenshot,
-      screenshot_url,
-      categories:category_id(id, name, slug),
-      artwork:artwork(id, image_url, alt_text)
-    `)
-    .eq("status", "approved")
-    .order("approved_at", { ascending: false })
-    .limit(12)
-
-  // Format the gallery items
-  const galleryItems =
-    notes?.map((item) => ({
-      id: item.id,
-      content: item.content,
-      category: item.categories as Category,
-      artwork: item.artwork?.[0] || null,
-      is_screenshot: item.is_screenshot,
-      screenshot_url: item.screenshot_url,
-      created_at: item.created_at,
-      approved_at: item.approved_at,
-    })) || []
-
   return {
-    categories: categories || [],
-    galleryItems,
+    categories: mockCategories,
+    galleryItems: mockGalleryItems,
   }
 }
 

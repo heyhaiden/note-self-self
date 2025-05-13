@@ -1,6 +1,6 @@
+import React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import FeaturedNotes from "@/components/featured-notes"
 
 export default function Home() {
   return (
@@ -23,10 +23,20 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-20 md:pt-32 pb-16 md:pb-24">
+      <section className="relative h-screen flex items-center">
         <div className="container px-4 md:px-6">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
-            <div className="flex-1">
+          <div className="max-w-6xl mx-auto relative">
+            {/* Image positioned absolutely */}
+            <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[80%] aspect-square z-0">
+              <img
+                src="/notes_app_hero - Edited.png"
+                alt="Notes app hero illustration"
+                className="w-full h-full object-contain"
+                aria-hidden="true"
+              />
+            </div>
+            {/* Text content with relative positioning */}
+            <div className="relative z-10 w-[45%]">
               <div className="mb-8 text-xs tracking-widest uppercase">NoteSelfSelf</div>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-[1.1]">
                 big feelings,
@@ -46,33 +56,6 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div className="flex-1 w-full aspect-square">
-              <img
-                src="/notes_app_hero"
-                alt=""
-                className="w-full h-full object-cover"
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Notes */}
-      <section className="py-16 md:py-24 border-t border-gray-100">
-        <div className="container px-4 md:px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-              <div>
-                <div className="mb-2 text-xs tracking-widest uppercase">Featured</div>
-                <h2 className="text-2xl md:text-3xl font-light tracking-tight">Overheard in minds.</h2>
-              </div>
-              <Link href="/gallery" className="text-sm font-light mt-4 md:mt-0 hover:underline underline-offset-4">
-                View all entries
-              </Link>
-            </div>
-
-            <FeaturedNotes />
           </div>
         </div>
       </section>
@@ -89,25 +72,25 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <div className="text-5xl font-light mb-6">01</div>
-              <h3 className="text-lg font-normal mb-3">Write anonymously</h3>
-              <p className="text-sm font-light text-gray-600 leading-relaxed">
+              <h3 className="text-lg font-normal mb-3 text-center">Write anonymously</h3>
+              <p className="text-sm font-light text-gray-600 leading-relaxed max-w-[250px] text-left">
                 Screenshot or copy/paste directly from your notes app. No editing necessary—we want the raw, unfiltered
                 version.
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <div className="text-5xl font-light mb-6">02</div>
-              <h3 className="text-lg font-normal mb-3">Transform to art</h3>
-              <p className="text-sm font-light text-gray-600 leading-relaxed">
+              <h3 className="text-lg font-normal mb-3 text-center">Transform to art</h3>
+              <p className="text-sm font-light text-gray-600 leading-relaxed max-w-[250px] text-left">
                 Our system converts your words into unique, minimalist line art that captures their essence.
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <div className="text-5xl font-light mb-6">03</div>
-              <h3 className="text-lg font-normal mb-3">Join the gallery</h3>
-              <p className="text-sm font-light text-gray-600 leading-relaxed">
+              <h3 className="text-lg font-normal mb-3 text-center">Join the gallery</h3>
+              <p className="text-sm font-light text-gray-600 leading-relaxed max-w-[250px] text-left">
                 Your thoughts become part of our collection, resonating with others who feel the same.
               </p>
             </div>
