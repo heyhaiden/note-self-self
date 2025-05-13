@@ -21,7 +21,7 @@ The project draws inspiration from the iPhone Notes app - a private space where 
 3. MindStudio AI processes the text and generates unique artwork
 4. Artwork is displayed in the public gallery
 
-![AI Art Generation Process](path/to/ai-process-screenshot.png)
+![AI Art Generation Process](public/ai-process-screenshot.png)
 
 ### Architecture
 
