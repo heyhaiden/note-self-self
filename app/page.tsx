@@ -12,9 +12,6 @@ export default function Home() {
             NOTE<span className="font-normal">SELF</span>SELF
           </Link>
           <nav className="flex items-center space-x-6">
-            <Link href="/gallery" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
-              Gallery
-            </Link>
             <Link href="/about" className="text-sm font-light tracking-wide hover:underline underline-offset-4">
               About
             </Link>
@@ -27,7 +24,17 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-20 md:pt-32 pb-16 md:pb-24">
-        <div className="container px-4 md:px-6">
+        {/* Background Image - positioned to the right */}
+        <div className="absolute top-0 right-0 w-full md:w-2/3 h-full z-[-1] overflow-hidden opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent"></div>
+          <img
+            src="/minimalist-abstract-line-art-bw.png"
+            alt=""
+            className="w-full h-full object-cover object-right"
+            aria-hidden="true"
+          />
+        </div>
+        <div className="container px-4 md:px-6 relative">
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 text-xs tracking-widest uppercase">NoteSelfSelf</div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 leading-[1.1]">
@@ -45,13 +52,6 @@ export default function Home() {
                 className="rounded-none bg-black text-white hover:bg-gray-800 px-8 py-6 text-sm font-light tracking-wide"
               >
                 <Link href="/submit">Share your thoughts</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="rounded-none border-black hover:bg-gray-50 px-8 py-6 text-sm font-light tracking-wide"
-              >
-                <Link href="/gallery">Explore gallery</Link>
               </Button>
             </div>
           </div>
