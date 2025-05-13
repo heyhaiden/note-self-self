@@ -6,7 +6,7 @@ import { notFound } from "next/navigation"
 
 // Fetch note details from Supabase
 async function getNoteDetails(id: number) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Fetch the note with its category and artwork
   const { data: note, error } = await supabase
@@ -113,7 +113,7 @@ export default async function NoteDetailPage({ params }: { params: { id: string 
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-4">
                 <span className="text-xs tracking-wider uppercase text-gray-500">
-                  {note.categories?.name || "Uncategorized"}
+                  {note.categories?.[0]?.name || "Uncategorized"}
                 </span>
                 <span className="text-xs font-light text-gray-400">
                   {new Date(note.approved_at || note.created_at).toLocaleDateString("en-US", {
@@ -159,7 +159,7 @@ export default async function NoteDetailPage({ params }: { params: { id: string 
                     <Link key={item.id} href={`/gallery/${item.id}`} className="block group">
                       <div className="border border-gray-200 group-hover:border-gray-300 transition-colors p-6">
                         <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-                          {item.categories?.name || "Uncategorized"}
+                          {item.categories?.[0]?.name || "Uncategorized"}
                         </div>
                         <p className="text-base font-light leading-relaxed">{item.content}</p>
                         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">

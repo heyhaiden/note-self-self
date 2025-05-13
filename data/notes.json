@@ -7,7 +7,7 @@
     "created_at": "2024-03-20T10:30:00.000Z",
     "approved_at": "2024-03-20T10:35:00.000Z",
     "artwork": {
-      "id": 1 ,
+      "id": 1,
       "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/4bd7e368-fbf8-4c3e-8f91-d87b66f16481.webp",
       "alt_text": "Abstract representation of architectural musings"
     }
@@ -24,5 +24,30 @@
       "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/d3d6d9ee-fbc9-4a0c-94f1-7922f81ae848.webp",
       "alt_text": "Abstract representation of architectural musings"
     }
+  },
+  {
+    "id": 3,
+    "title": "Friendship fractured",
+    "content": "Friendship really suffered over the last year and it's made me sad \n\nI had no one to confide in with how I was feeling \n\nObviously would never dictate who someone could be friends with and make them choose sides but you have to know that impacted me?",
+    "status": "approved",
+    "artwork": {
+      "id": 3,
+      "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/6593796d-e276-4f37-af3f-c48795ce1763.webp"
+    },
+    "created_at": "2025-05-13T13:35:42.799Z",
+    "approved_at": "2025-05-13T13:40:18.389Z"
+  },
+  {
+    "id": 4,
+    "title": "Coffeeshop ",
+    "content": "Laurie + dog \nOval tube stop",
+    "status": "approved",
+    "artwork": {
+      "id": 4,
+      "image_url": "https://images.mindstudio-cdn.com/88702264-4253-4dd2-ada8-2f6486b5da87/generated-images/c14e853b-1675-4c31-a78f-8fed7a74e24f.webp",
+      "alt_text": "Generated artwork for note 4"
+    },
+    "created_at": "2025-05-13T14:15:46.855Z",
+    "approved_at": "2025-05-13T14:26:18.568Z"
   }
 ]

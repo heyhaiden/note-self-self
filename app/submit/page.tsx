@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Input } from "@/components/ui/input"
 
 export default function SubmitPage() {
   const router = useRouter()
+  const [noteTitle, setNoteTitle] = useState("")
   const [noteText, setNoteText] = useState("")
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -42,6 +44,7 @@ export default function SubmitPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          title: noteTitle,
           content: noteText,
         }),
       })
@@ -96,6 +99,19 @@ export default function SubmitPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-light">
+                Title (optional)
+              </Label>
+              <Input
+                id="title"
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+                placeholder="Give your note a title..."
+                className="font-light"
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="note" className="text-sm font-light">

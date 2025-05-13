@@ -27,11 +27,11 @@ if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, JSON.stringify([]))
 }
 
-export function saveNote(content: string): Note {
+export function saveNote(content: string, title: string = ""): Note {
   const notes = getAllNotes()
   const newNote: Note = {
     id: notes.length + 1,
-    title: "", // Empty title by default
+    title,
     content,
     status: 'pending',
     artwork: null,
