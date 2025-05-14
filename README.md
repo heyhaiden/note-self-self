@@ -1,7 +1,6 @@
 # NoteSelfSelf
 
-![Home Page](public/home-screenshot.png)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue)](https://noteselfself.vercel.app/)
+[![Home Page](public/home-screenshot.png)](https://noteselfself.vercel.app/)
 
 An art installation that reimagines the iPhone Notes app as a canvas for collective human expression. Users submit their most personal thoughts anonymously, which are then transformed into minimalist line art through AI. The project explores the intersection of digital intimacy, anonymous expression, and algorithmic interpretation.
 
