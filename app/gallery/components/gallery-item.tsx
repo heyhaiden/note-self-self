@@ -10,7 +10,7 @@ type GalleryItem = {
     id: number
     image_url: string
     alt_text: string | null
-  } | null
+  }[] | null
   is_screenshot: boolean
   screenshot_url: string | null
   created_at: string
@@ -26,9 +26,17 @@ export function GalleryItem({ item }: GalleryItemProps) {
   const totalSlides = 2 // Artwork and Text slides
 
   const imageSource =
-    item.artwork?.image_url ||
+    item.artwork?.[0]?.image_url ||
     (item.is_screenshot && item.screenshot_url) ||
-    `/placeholder.svg?height=400&width=400&query=minimalist abstract line art, black and white, ${item.id}`
+    `/minimalist-abstract-line-art-bw.png`
+
+  console.log('Gallery item image source:', {
+    itemId: item.id,
+    artworkUrl: item.artwork?.[0]?.image_url,
+    isScreenshot: item.is_screenshot,
+    screenshotUrl: item.screenshot_url,
+    finalImageSource: imageSource
+  })
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides)
@@ -48,8 +56,8 @@ export function GalleryItem({ item }: GalleryItemProps) {
           }`}
         >
           <img
-            src={imageSource || "/placeholder.svg"}
-            alt={item.artwork?.alt_text || `Abstract representation of note: ${item.content.substring(0, 30)}...`}
+            src={imageSource}
+            alt={item.artwork?.[0]?.alt_text || `Abstract representation of note: ${item.content.substring(0, 30)}...`}
             className="w-full h-full object-cover"
           />
         </div>

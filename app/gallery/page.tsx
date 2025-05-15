@@ -38,8 +38,11 @@ function convertNoteToGalleryItem(note: Note): GalleryItem {
 // Fetch data from local storage
 async function getGalleryData() {
   const notes = await getAllNotes()
+  console.log('All notes from database:', JSON.stringify(notes, null, 2))
   const approvedNotes = notes.filter(note => note.status === 'approved')
+  console.log('Approved notes:', JSON.stringify(approvedNotes, null, 2))
   const galleryItems = approvedNotes.map(convertNoteToGalleryItem)
+  console.log('Converted gallery items:', JSON.stringify(galleryItems, null, 2))
 
   return {
     galleryItems,

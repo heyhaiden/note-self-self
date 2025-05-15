@@ -10,6 +10,13 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function SubmitPage() {
   const router = useRouter()
@@ -18,6 +25,8 @@ export default function SubmitPage() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [focusedInput, setFocusedInput] = useState<string | null>(null)
+  const [dialogType, setDialogType] = useState<"terms" | "privacy" | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,8 +59,13 @@ export default function SubmitPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to submit note")
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to submit note")
+        } else {
+          throw new Error("Server error. Please try again later.")
+        }
       }
 
       // Redirect to success page
@@ -104,26 +118,46 @@ export default function SubmitPage() {
               <Label htmlFor="title" className="text-sm font-light">
                 Title (optional)
               </Label>
-              <Input
-                id="title"
-                value={noteTitle}
-                onChange={(e) => setNoteTitle(e.target.value)}
-                placeholder="Give your note a title..."
-                className="font-light"
-              />
+              <div className="relative">
+                <Input
+                  id="title"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  placeholder="Give your note a title..."
+                  className="font-light"
+                  maxLength={50}
+                  onFocus={() => setFocusedInput('title')}
+                  onBlur={() => setFocusedInput(null)}
+                />
+                {focusedInput === 'title' && (
+                  <p className="absolute bottom-2 right-3 text-sm text-gray-500">
+                    {noteTitle.length}/50
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="note" className="text-sm font-light">
                 Your note
               </Label>
-              <Textarea
-                id="note"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Write your thoughts here..."
-                className="min-h-[200px] font-light"
-              />
+              <div className="relative">
+                <Textarea
+                  id="note"
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder="Paste your notes app submission here..."
+                  className="min-h-[200px] font-light"
+                  maxLength={500}
+                  onFocus={() => setFocusedInput('note')}
+                  onBlur={() => setFocusedInput(null)}
+                />
+                {focusedInput === 'note' && (
+                  <p className="absolute bottom-2 right-3 text-sm text-gray-500">
+                    {noteText.length}/500
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="pt-4 border-t border-gray-100">
@@ -136,16 +170,88 @@ export default function SubmitPage() {
                 />
                 <Label htmlFor="terms" className="text-sm font-light leading-none pt-0.5">
                   I agree to the{" "}
-                  <Link href="/terms" className="underline underline-offset-4">
+                  <button
+                    type="button"
+                    onClick={() => setDialogType("terms")}
+                    className="underline underline-offset-4"
+                  >
                     Terms of Service
-                  </Link>{" "}
+                  </button>{" "}
                   and{" "}
-                  <Link href="/privacy" className="underline underline-offset-4">
+                  <button
+                    type="button"
+                    onClick={() => setDialogType("privacy")}
+                    className="underline underline-offset-4"
+                  >
                     Privacy Policy
-                  </Link>
+                  </button>
                 </Label>
               </div>
             </div>
+
+            <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-4xl font-light">
+                    {dialogType === "terms" ? "Terms of Service" : "Privacy Policy"}
+                  </DialogTitle>
+                </DialogHeader>
+                {dialogType === "terms" ? (
+                  <div className="prose prose-lg">
+                    <p className="mb-4">
+                      By submitting content to NoteSelfSelf, you agree to the following terms:
+                    </p>
+
+                    <h2 className="text-2xl font-light mt-8 mb-4">Content Guidelines</h2>
+                    <ul className="list-disc pl-6 mb-8">
+                      <li>All submissions must be anonymous and not contain identifying information</li>
+                      <li>Content should be original and not infringe on others' rights</li>
+                      <li>No hate speech, harassment, or harmful content</li>
+                      <li>No spam or commercial content</li>
+                    </ul>
+
+                    <h2 className="text-2xl font-light mt-8 mb-4">Rights and Permissions</h2>
+                    <p className="mb-4">
+                      By submitting content, you grant NoteSelfSelf the right to:
+                    </p>
+                    <ul className="list-disc pl-6 mb-8">
+                      <li>Display your content in the gallery</li>
+                      <li>Transform your content into artwork</li>
+                      <li>Share the artwork on social media platforms</li>
+                    </ul>
+
+                    <h2 className="text-2xl font-light mt-8 mb-4">Privacy</h2>
+                    <p className="mb-8">
+                      We do not collect or store any personal information. All submissions are completely anonymous.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="prose prose-lg">
+                    <h2 className="text-2xl font-light mt-8 mb-4">Data Collection</h2>
+                    <p className="mb-4">
+                      NoteSelfSelf is committed to protecting your privacy. We:
+                    </p>
+                    <ul className="list-disc pl-6 mb-8">
+                      <li>Do not collect any personal information</li>
+                      <li>Do not store any identifying data</li>
+                      <li>Do not track user behavior</li>
+                      <li>Do not use cookies or analytics</li>
+                    </ul>
+
+                    <h2 className="text-2xl font-light mt-8 mb-4">Content Privacy</h2>
+                    <p className="mb-4">
+                      All submissions are:
+                    </p>
+                    <ul className="list-disc pl-6 mb-8">
+                      <li>Completely anonymous</li>
+                      <li>Not linked to any user data</li>
+                      <li>Stored securely</li>
+                      <li>Never shared with third parties</li>
+                    </ul>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
 
             <div className="pt-4">
               <Button

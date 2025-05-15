@@ -162,7 +162,6 @@ export async function POST(
     
     // Update the artwork with the URL
     const finalNote = await updateNoteArtwork(id, {
-      id: note.id,
       image_url: cleanImageUrl,
       alt_text: `Generated artwork for note ${note.id}`
     })

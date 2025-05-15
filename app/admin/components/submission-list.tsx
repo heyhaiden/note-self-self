@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Note } from "@/lib/notes-storage"
-import { Check, X, Image as ImageIcon } from "lucide-react"
+import { Check, X, Image as ImageIcon, Trash2 } from "lucide-react"
 import Image from "next/image"
+import { DeleteConfirmDialog } from "./delete-confirm-dialog"
 
 interface SubmissionListProps {
   notes: Note[]
@@ -14,6 +15,9 @@ export function SubmissionList({ notes }: SubmissionListProps) {
   const [localNotes, setLocalNotes] = useState(notes)
   const [processingId, setProcessingId] = useState<number | null>(null)
   const [generatingImageId, setGeneratingImageId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
 
   const handleStatusUpdate = async (id: number, status: 'approved' | 'rejected') => {
     setProcessingId(id)
@@ -85,6 +89,40 @@ export function SubmissionList({ notes }: SubmissionListProps) {
     }
   }
 
+  const handleDeleteClick = (id: number) => {
+    setNoteToDelete(id)
+    setShowDeleteDialog(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!noteToDelete) return
+
+    setDeletingId(noteToDelete)
+    try {
+      const response = await fetch(`/api/notes/${noteToDelete}/delete`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete note')
+      }
+
+      setLocalNotes(prevNotes => prevNotes.filter(note => note.id !== noteToDelete))
+      setShowDeleteDialog(false)
+    } catch (error) {
+      console.error('Error deleting note:', error)
+      alert('Failed to delete note')
+    } finally {
+      setDeletingId(null)
+      setNoteToDelete(null)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false)
+    setNoteToDelete(null)
+  }
+
   if (localNotes.length === 0) {
     return (
       <div className="text-center py-12">
@@ -94,95 +132,128 @@ export function SubmissionList({ notes }: SubmissionListProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {localNotes.map((note) => {
-        console.log('Rendering note:', note)
-        return (
-          <div
-            key={note.id}
-            className="border border-gray-200 p-6 flex flex-col md:flex-row justify-between gap-6"
-          >
-            <div className="flex-grow">
-              <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-                ID: {note.id}
-              </div>
-              <p className="text-base font-light leading-relaxed">{note.content}</p>
-              <div className="mt-4 text-sm text-gray-500">
-                Submitted: {new Date(note.created_at).toLocaleString()}
-              </div>
-              
-              {/* Image Preview Section */}
-              {note.artwork && note.artwork.image_url && (
-                <div className="mt-6">
-                  <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
-                    Generated Artwork
+    <>
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={deletingId !== null}
+      />
+      
+      <div className="space-y-6">
+        {localNotes.map((note) => {
+          console.log('Rendering note:', note)
+          return (
+            <div
+              key={note.id}
+              className="border border-gray-200 p-6 flex flex-col md:flex-row justify-between gap-6"
+            >
+              <div className="flex-grow">
+                <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
+                  ID: {note.id}
+                </div>
+                <p className="text-base font-light leading-relaxed">{note.content}</p>
+                <div className="mt-4 text-sm text-gray-500">
+                  Submitted: {new Date(note.created_at).toLocaleString()}
+                </div>
+                
+                {/* Image Preview Section */}
+                {note.artwork && note.artwork.image_url && (
+                  <div className="mt-6">
+                    <div className="text-xs tracking-wider uppercase mb-3 text-gray-500">
+                      Generated Artwork
+                    </div>
+                    <div className="relative aspect-square w-full max-w-[300px] border border-gray-200">
+                      <Image
+                        src={note.artwork.image_url}
+                        alt={note.artwork.alt_text || "Generated artwork"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    {note.title && (
+                      <p className="mt-2 text-sm font-light">{note.title}</p>
+                    )}
                   </div>
-                  <div className="relative aspect-square w-full max-w-[300px] border border-gray-200">
-                    <Image
-                      src={note.artwork.image_url}
-                      alt={note.artwork.alt_text || "Generated artwork"}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  {note.title && (
-                    <p className="mt-2 text-sm font-light">{note.title}</p>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {note.status === 'pending' && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-none border-gray-600 text-gray-600 hover:bg-gray-50"
+                      onClick={() => handleGenerateImage(note.id)}
+                      disabled={generatingImageId === note.id}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      {generatingImageId === note.id ? "Generating..." : "Generate Image"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-none border-green-600 text-green-600 hover:bg-green-50"
+                      onClick={() => handleStatusUpdate(note.id, 'approved')}
+                      disabled={processingId === note.id}
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Approve
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-none border-red-600 text-red-600 hover:bg-red-50"
+                      onClick={() => handleStatusUpdate(note.id, 'rejected')}
+                      disabled={processingId === note.id}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                  </>
+                )}
+
+                {note.status === 'approved' && (
+                  <>
+                    <div className="text-sm text-green-600">
+                      Approved: {new Date(note.approved_at!).toLocaleString()}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-none border-red-600 text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(note.id)}
+                      disabled={deletingId === note.id}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {deletingId === note.id ? "Deleting..." : "Delete"}
+                    </Button>
+                  </>
+                )}
+
+                {note.status === 'rejected' && (
+                  <>
+                    <div className="text-sm text-red-600">
+                      Rejected
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-none border-red-600 text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(note.id)}
+                      disabled={deletingId === note.id}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {deletingId === note.id ? "Deleting..." : "Delete"}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
-
-            <div className="flex flex-col gap-3">
-              {note.status === 'pending' && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-none border-gray-600 text-gray-600 hover:bg-gray-50"
-                    onClick={() => handleGenerateImage(note.id)}
-                    disabled={generatingImageId === note.id}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    {generatingImageId === note.id ? "Generating..." : "Generate Image"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-none border-green-600 text-green-600 hover:bg-green-50"
-                    onClick={() => handleStatusUpdate(note.id, 'approved')}
-                    disabled={processingId === note.id}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Approve
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-none border-red-600 text-red-600 hover:bg-red-50"
-                    onClick={() => handleStatusUpdate(note.id, 'rejected')}
-                    disabled={processingId === note.id}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Reject
-                  </Button>
-                </>
-              )}
-
-              {note.status === 'approved' && (
-                <div className="text-sm text-green-600">
-                  Approved: {new Date(note.approved_at!).toLocaleString()}
-                </div>
-              )}
-
-              {note.status === 'rejected' && (
-                <div className="text-sm text-red-600">
-                  Rejected
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+    </>
   )
 } 
