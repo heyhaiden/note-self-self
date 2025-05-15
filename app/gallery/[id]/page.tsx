@@ -4,7 +4,8 @@ import { ArrowLeft } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase-client"
 import { notFound } from "next/navigation"
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this route
+export const dynamic = 'force-dynamic'
 
 // Fetch note details from Supabase
 async function getNoteDetails(id: number) {

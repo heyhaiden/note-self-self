@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { saveNote, getAllNotes, ValidationError } from '@/lib/data-access'
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this API route
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {

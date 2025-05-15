@@ -1,2 +1,0 @@
-// Dynamic directive backup
-export const dynamic = 'force-dynamic'

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import config from '@/lib/config'
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this API route
+export const dynamic = 'force-dynamic'
 
 // Get credentials from config
 const { username: ADMIN_USERNAME, password: ADMIN_PASSWORD } = config.admin

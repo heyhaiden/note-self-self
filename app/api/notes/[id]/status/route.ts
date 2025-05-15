@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { updateNoteStatus } from '@/lib/data-access'
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this API route
+export const dynamic = 'force-dynamic'
 
 export async function PUT(
   request: Request,

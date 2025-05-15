@@ -6,7 +6,8 @@ import { getAllNotes } from "@/lib/data-access"
 import { SubmissionList } from "./components/submission-list"
 import { LogoutButton } from "./components/logout-button"
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is set at the app level via next.config.mjs and app/config.ts
+export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   const notes = await getAllNotes()

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import config from '@/lib/config'
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this API route
+export const dynamic = 'force-dynamic'
 
 // Get auth config
 const { cookieName, cookieSecure } = config.auth

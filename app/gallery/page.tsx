@@ -5,7 +5,8 @@ import { ArrowLeft, Search } from "lucide-react"
 import { getAllNotes, Note } from "@/lib/data-access"
 import { GalleryItem } from "./components/gallery-item"
 
-// Dynamic rendering is set at the route level via route.ts
+// Dynamic rendering is explicitly set for this route
+export const dynamic = 'force-dynamic'
 
 // Gallery item type for the page
 type GalleryItem = {
