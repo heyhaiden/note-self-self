@@ -134,6 +134,38 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
 
 export async function getAllNotes(): Promise<Note[]> {
   try {
+    // Check if Supabase client is properly initialized
+    if (!supabase) {
+      console.error('Supabase client is not initialized')
+      throw new Error('Database connection not initialized')
+    }
+
+    // Log environment variables (without exposing sensitive data)
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      isProduction: process.env.NODE_ENV === 'production',
+      supabaseUrlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 10) + '...'
+    })
+
+    // Test the connection with a simple query
+    const { data: testData, error: testError } = await supabase
+      .from('notes')
+      .select('id')
+      .limit(1)
+
+    if (testError) {
+      console.error('Database connection test failed:', {
+        code: testError.code,
+        message: testError.message,
+        details: testError.details
+      })
+      throw new Error('Database connection test failed')
+    }
+
+    console.log('Database connection test successful')
+
+    // Proceed with the full query
     const { data, error } = await supabase
       .from('notes')
       .select(`
@@ -147,13 +179,28 @@ export async function getAllNotes(): Promise<Note[]> {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching notes:', error)
+      console.error('Error fetching notes:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       throw new Error('Failed to fetch notes')
     }
 
+    console.log('Successfully fetched notes:', {
+      count: data?.length || 0,
+      firstNoteId: data?.[0]?.id,
+      lastNoteId: data?.[data.length - 1]?.id
+    })
+
     return data || []
   } catch (error) {
-    console.error('Unexpected error fetching notes:', error)
+    console.error('Unexpected error in getAllNotes:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     throw new Error('An unexpected error occurred while fetching notes')
   }
 }

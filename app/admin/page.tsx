@@ -8,7 +8,11 @@ import { LogoutButton } from "./components/logout-button"
 
 export default async function AdminPage() {
   const notes = await getAllNotes()
+  console.log('All notes from database:', JSON.stringify(notes, null, 2))
+  
   const pendingNotes = notes.filter(note => note.status === 'pending')
+  console.log('Pending notes:', JSON.stringify(pendingNotes, null, 2))
+  
   const approvedNotes = notes.filter(note => note.status === 'approved')
   const rejectedNotes = notes.filter(note => note.status === 'rejected')
 
