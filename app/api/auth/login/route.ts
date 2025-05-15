@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import config from '@/lib/config'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-// Get credentials from environment variables
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
+// Get credentials from config
+const { username: ADMIN_USERNAME, password: ADMIN_PASSWORD } = config.admin
+const { cookieName, cookieMaxAge, cookieSecure } = config.auth
 
-// Validate that environment variables are set
+// Validate that credentials are set
 if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
   throw new Error('Admin credentials not configured in environment variables')
 }
@@ -22,11 +23,11 @@ export async function POST(request: Request) {
       const response = NextResponse.json({ success: true })
       
       // Set HTTP-only cookie
-      response.cookies.set('adminAuth', 'true', {
+      response.cookies.set(cookieName, 'true', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: cookieSecure,
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: cookieMaxAge, // From config
       })
 
       return response

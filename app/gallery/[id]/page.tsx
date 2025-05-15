@@ -4,6 +4,9 @@ import { ArrowLeft } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 // Fetch note details from Supabase
 async function getNoteDetails(id: number) {
   const supabase = await createServerSupabaseClient()

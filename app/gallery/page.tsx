@@ -5,6 +5,9 @@ import { ArrowLeft, Search } from "lucide-react"
 import { getAllNotes, Note } from "@/lib/notes-storage"
 import { GalleryItem } from "./components/gallery-item"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 // Gallery item type for the page
 type GalleryItem = {
   id: number

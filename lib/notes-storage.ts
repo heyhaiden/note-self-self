@@ -1,11 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { createServerSupabaseClient } from './supabase'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-// Create a direct client for non-authenticated operations
-const directSupabase = createClient(supabaseUrl, supabaseKey)
+import { getSupabaseClient, createServerSupabaseClient } from './supabase-client'
 
 // Constants for validation
 const MAX_TITLE_LENGTH = 50
@@ -70,9 +63,10 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
 
     validateNoteInput(title, content)
 
-    // Use directSupabase for public operations like submitting notes
-    // This will work in both local and production environments
-    const { data: note, error: noteError } = await directSupabase
+    // Use client Supabase for public operations like submitting notes
+    const supabase = getSupabaseClient('client')
+    
+    const { data: note, error: noteError } = await supabase
       .from('notes')
       .insert([
         {
@@ -100,7 +94,7 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
     }
 
     // Then create the artwork record with the note ID
-    const { data: artwork, error: artworkError } = await directSupabase
+    const { data: artwork, error: artworkError } = await supabase
       .from('artwork')
       .insert([
         {
@@ -211,8 +205,10 @@ export async function getNoteById(id: number): Promise<Note | null> {
       throw new ValidationError('Invalid note ID')
     }
 
-    // For public access to a specific note, use the direct client
-    const { data, error } = await directSupabase
+    // For public access to a specific note, use the client Supabase
+    const supabase = getSupabaseClient('client')
+    
+    const { data, error } = await supabase
       .from('notes')
       .select(`
         *,

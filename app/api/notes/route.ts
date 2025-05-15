@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { saveNote, getAllNotes, ValidationError } from '@/lib/notes-storage'
+import { saveNote, getAllNotes, ValidationError } from '@/lib/data-access'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
