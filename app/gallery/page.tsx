@@ -2,11 +2,10 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Search } from "lucide-react"
-import { getAllNotes, Note } from "@/lib/notes-storage"
+import { getAllNotes, Note } from "@/lib/data-access"
 import { GalleryItem } from "./components/gallery-item"
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic'
+// Dynamic rendering is set at the route level via route.ts
 
 // Gallery item type for the page
 type GalleryItem = {

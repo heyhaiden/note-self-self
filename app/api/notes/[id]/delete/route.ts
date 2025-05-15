@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { deleteNote } from '@/lib/notes-storage'
+import { deleteNote } from '@/lib/data-access'
 
-// Force dynamic rendering for this API route
-export const dynamic = 'force-dynamic'
+// Dynamic rendering is set at the route level via route.ts
 
 export async function DELETE(
   request: Request,

@@ -2,13 +2,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft } from "lucide-react"
-import { getAllNotes } from "@/lib/notes-storage"
+import { getAllNotes } from "@/lib/data-access"
 import { SubmissionList } from "./components/submission-list"
 import { LogoutButton } from "./components/logout-button"
 
-// This is needed to make sure this page is rendered dynamically
-// since we're using cookies in the server component
-export const dynamic = 'force-dynamic'
+// Dynamic rendering is set at the route level via route.ts
 
 export default async function AdminPage() {
   const notes = await getAllNotes()

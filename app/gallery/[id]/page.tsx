@@ -1,11 +1,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase-client"
 import { notFound } from "next/navigation"
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic'
+// Dynamic rendering is set at the route level via route.ts
 
 // Fetch note details from Supabase
 async function getNoteDetails(id: number) {

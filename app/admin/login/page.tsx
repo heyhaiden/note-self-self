@@ -4,8 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic'
+// Client component - no need for dynamic directive
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
