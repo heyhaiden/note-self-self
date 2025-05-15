@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { deleteNote } from '@/lib/notes-storage'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }

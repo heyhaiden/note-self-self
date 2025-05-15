@@ -6,6 +6,10 @@ import { getAllNotes } from "@/lib/notes-storage"
 import { SubmissionList } from "./components/submission-list"
 import { LogoutButton } from "./components/logout-button"
 
+// This is needed to make sure this page is rendered dynamically
+// since we're using cookies in the server component
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   const notes = await getAllNotes()
   console.log('All notes from database:', JSON.stringify(notes, null, 2))

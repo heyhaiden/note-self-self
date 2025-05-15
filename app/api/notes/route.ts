@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { saveNote, getAllNotes, ValidationError } from '@/lib/notes-storage'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const { content, title } = await request.json()

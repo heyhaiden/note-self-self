@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getNoteById, updateNoteArtwork } from '@/lib/notes-storage'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 const MINDSTUDIO_API_KEY = process.env.MINDSTUDIO_API_KEY
 const MINDSTUDIO_API_URL = 'https://api.mindstudio.ai/developer/v2/apps/run'
 const MINDSTUDIO_AGENT_ID = process.env.MINDSTUDIO_AGENT_ID

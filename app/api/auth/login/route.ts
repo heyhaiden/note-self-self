@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 // Get credentials from environment variables
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
