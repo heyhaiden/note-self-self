@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerSupabaseClient } from './supabase'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Create a direct client for non-authenticated operations
+const directSupabase = createClient(supabaseUrl, supabaseKey)
 
 // Constants for validation
 const MAX_TITLE_LENGTH = 50
@@ -68,8 +70,9 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
 
     validateNoteInput(title, content)
 
-    // Create the note first
-    const { data: note, error: noteError } = await supabase
+    // Use directSupabase for public operations like submitting notes
+    // This will work in both local and production environments
+    const { data: note, error: noteError } = await directSupabase
       .from('notes')
       .insert([
         {
@@ -97,7 +100,7 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
     }
 
     // Then create the artwork record with the note ID
-    const { data: artwork, error: artworkError } = await supabase
+    const { data: artwork, error: artworkError } = await directSupabase
       .from('artwork')
       .insert([
         {
@@ -134,12 +137,9 @@ export async function saveNote(content: string, title: string = ""): Promise<Not
 
 export async function getAllNotes(): Promise<Note[]> {
   try {
-    // Check if Supabase client is properly initialized
-    if (!supabase) {
-      console.error('Supabase client is not initialized')
-      throw new Error('Database connection not initialized')
-    }
-
+    // Create a server-side Supabase client for authenticated requests
+    const supabase = await createServerSupabaseClient()
+    
     // Log environment variables (without exposing sensitive data)
     console.log('Environment check:', {
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -211,7 +211,8 @@ export async function getNoteById(id: number): Promise<Note | null> {
       throw new ValidationError('Invalid note ID')
     }
 
-    const { data, error } = await supabase
+    // For public access to a specific note, use the direct client
+    const { data, error } = await directSupabase
       .from('notes')
       .select(`
         *,
@@ -252,6 +253,9 @@ export async function updateNoteStatus(id: number, status: 'approved' | 'rejecte
       throw new ValidationError('Invalid status')
     }
 
+    // Use server client for admin operations like approving/rejecting notes
+    const supabase = await createServerSupabaseClient()
+    
     const { data, error } = await supabase
       .from('notes')
       .update({
@@ -292,6 +296,9 @@ export async function updateNoteArtwork(id: number, artwork: { image_url: string
 
     validateArtworkInput(artwork)
 
+    // Use server client for admin operations
+    const supabase = await createServerSupabaseClient()
+    
     // Update the artwork directly since we know it exists (created by trigger)
     const { error: updateError } = await supabase
       .from('artwork')
@@ -345,6 +352,9 @@ export async function updateNoteTitle(id: number, title: string): Promise<Note |
       throw new ValidationError(`Title must be ${MAX_TITLE_LENGTH} characters or less`)
     }
 
+    // Use server client for admin operations
+    const supabase = await createServerSupabaseClient()
+    
     const { data, error } = await supabase
       .from('notes')
       .update({ title })
@@ -377,6 +387,9 @@ export async function updateNoteTitle(id: number, title: string): Promise<Note |
 // New helper function to get notes by status
 export async function getNotesByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<Note[]> {
   try {
+    // Use server client for admin operations
+    const supabase = await createServerSupabaseClient()
+    
     const { data, error } = await supabase
       .from('notes')
       .select(`
@@ -408,6 +421,9 @@ export async function deleteNote(id: number): Promise<void> {
       throw new ValidationError('Invalid note ID')
     }
 
+    // Use server client for admin operations
+    const supabase = await createServerSupabaseClient()
+    
     // First delete the artwork (if it exists)
     const { error: artworkError } = await supabase
       .from('artwork')
